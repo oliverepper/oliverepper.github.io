@@ -25,10 +25,23 @@ a:hover {
 }
 
 .hero {
+    /* background: url('../images/Hintergrund-Juni.jpg') no-repeat center center; */
+    /* background-size: cover;
+    min-height: 200px; */
+}
+
+.no-webp .hero {
     background: url('../images/Hintergrund-Juni.jpg') no-repeat center center;
     background-size: cover;
     min-height: 200px;
 }
+
+.webp .hero {
+    background: url('../images/Hintergrund-Juni.webp') no-repeat center center;
+    background-size: cover;
+    min-height: 200px;
+}
+
 
 main {
     color: #425563;
