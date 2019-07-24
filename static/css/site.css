@@ -1,0 +1,209 @@
+.wf-loading body {
+    font-family: system-ui, sans-serif;
+}
+
+.wf-active body {
+    font-family: "Nunito";
+}
+
+html {
+    font-size: 1em;
+}
+
+a {
+    text-decoration: none;
+    color: #ed8b00;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #BD6F00
+}
+
+.fa {
+    color: #ed8b00;
+}
+
+.hero {
+    background: url('../images/Hintergrund-Juni.jpg') no-repeat center center;
+    background-size: cover;
+    min-height: 200px;
+}
+
+main {
+    color: #425563;
+    line-height: 1.5;
+    padding-bottom: 1.5em;
+}
+
+/* Mailchimp Form */
+.mailchimp-form {
+    background: #ed8b00;
+}
+
+.mailchimp-form h3 {
+    margin-top: 0px;
+}
+
+.invalid-feedback {
+    color: #425563;
+}
+
+.was-validated .form-control:invalid {
+    border: none;
+}
+
+.was-validated .form-control:valid {
+    border: none;
+}
+
+#artikel_content img {
+    width: 100%;
+}
+
+/* iPhone 6s portrait */
+@media (max-width: 575px) {
+
+    /* body { background: lightyellow; } */
+    :root {
+        --header_height: 144px;
+        --footer_height: 24px;
+    }
+
+    .header_spacer {
+        height: var(--header_height);
+    }
+
+    .hero {
+        height: calc(100vh - var(--header_height));
+    }
+
+    .main { min-height: calc(100vh - 2 * var(--footer_height)); }
+    .offset_anchor {
+        height: var(--header_height);
+        margin-top: calc(var(--header_height) * -1);
+    }
+}
+
+/* iPhone 6s landscape */
+@media all and (min-width: 576px) and (max-width: 767px) {
+
+    /* body { background: lightgreen; } */
+    :root {
+        --header_height: 144px;
+        --footer_height: 24px;
+    }
+
+    .header_spacer {
+        height: var(--header_height);
+    }
+
+    .hero {
+        height: calc(100vh - var(--header_height));
+    }
+
+    .main { min-height: calc(100vh - 2 * var(--footer_height)); }
+    .offset_anchor {
+        height: var(--header_height);
+        margin-top: calc(var(--header_height) * -1);
+    }
+}
+
+/* iPad 10.5 portrait */
+@media (min-width: 768px) and (max-width: 991px) {
+
+    /* body { background: rgb(241, 193, 239); } */
+    :root {
+        --header_height: 144px;
+        --footer_height: 24px;
+    }
+
+    .header_spacer {
+        height: var(--header_height);
+    }
+
+    .hero {
+        height: calc(100vh - var(--header_height));
+    }
+
+    .main {
+        min-height: calc(100vh - 2 * var(--footer_height));
+    }
+
+    .offset_anchor {
+        height: var(--header_height);
+        margin-top: calc(var(--header_height) * -1);
+    }
+}
+
+/* iPad 10.5 landscape */
+@media (min-width: 992px) and (max-width: 1199px) {
+
+    /* body { background: lightcoral; } */
+    html {
+        font-size: larger;
+    }
+
+    :root {
+        --header_height: 174px;
+        --footer_height: 28px;
+    }
+
+    .header_spacer {
+        height: var(--header_height);
+    }
+
+    .hero {
+        height: calc(100vh - var(--header_height));
+    }
+
+    .main { min-height: calc(100vh - 2 * var(--footer_height)); }
+    .offset_anchor {
+        height: var(--header_height);
+        margin-top: calc(var(--header_height) * -1);
+    }
+}
+
+/* Desktop */
+@media all and (min-width: 1200px) {
+
+    /* body { background: lightsteelblue; } */
+    html {
+        font-size: larger;
+    }
+
+    :root {
+        --header_height: 174px;
+        --footer_height: 28px;
+    }
+
+    .header_spacer {
+        height: var(--header_height);
+    }
+
+    .hero {
+        height: calc(100vh - var(--header_height));
+    }
+
+    .main { min-height: calc(100vh - 2 * var(--footer_height)); }
+    .offset_anchor {
+        height: var(--header_height);
+        margin-top: calc(var(--header_height) * -1);
+    }
+}
+
+.btn-outline-primary {
+    border-color: #ed8b00;
+    color: #ed8b00;
+}
+
+.btn-outline-primary:hover {
+    border-color: #ed8b00;
+    background-color: #fff;
+    color: #ed8b00;
+
+}
+
+/* .offset_anchor {
+    border: 1px solid black;
+} */

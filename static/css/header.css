@@ -1,0 +1,29 @@
+.topper {
+    /* background-color: transparent; */
+    background-color: #ed8b00;
+    color: #fff !important;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    font-size: larger;
+}
+
+.topper a {
+    color: #fff !important;
+}
+
+.topper .fa {
+    color: #fff !important;
+}
+
+.logo_title {
+    color: #425563;
+    font-size: 2.37em;
+    margin-bottom: -5px;
+}
+
+.logo_subtitle {
+    color: #ED8B00;
+    font-size: smaller;
+    font-variant: small-caps;
+    font-style: italic;
+}

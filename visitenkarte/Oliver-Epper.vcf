@@ -1,0 +1,13 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//Mac OS X 10.12.3//EN
+N:Epper;Oliver;;;
+FN:Oliver Epper
+EMAIL;type=INTERNET;type=WORK;type=pref:oliver.epper@gmail.com
+TEL;type=CELL;type=VOICE;type=pref:+4915123595397
+ADR;type=WORK;type=pref:;;Lietz Kreuz 1;Burbach;;54597;Deutschland
+item1.URL;type=pref:https://oliver-epper.de
+item1.X-ABLabel:_$!<HomePage>!$_
+CATEGORIES:für Webseite
+X-ABUID:E5CA64A6-605C-48EA-BE8C-05AF47B7D645:ABPerson
+END:VCARD

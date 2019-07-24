@@ -1,0 +1,40 @@
+.header { grid-area: header; }
+.hero { grid-area: hero; }
+.main { grid-area: main; }
+.dock { grid-area: dock; }
+.footer { grid-area: footer; }
+
+
+/* standard layout, no sidebars */
+.grid-container {
+	min-height: 100vh;
+	display: grid;
+	grid-template-columns: 100%;
+	grid-template-rows: auto auto 1fr auto auto;
+	grid-template-areas:
+		"header"
+		"hero"
+		"main"
+		"dock"
+		"footer";
+	}
+	
+/* bigger layouts, with sidebars */
+@media (min-width: 992px) {
+	.dock {
+		border-left: 1px solid rgba(66, 85, 99, 0.1);
+		margin-top: 20px;
+		margin-bottom: 20px;
+	}
+	.grid-container {
+		min-height: 100vh;
+		display: grid;
+		grid-template-columns: 1fr 8fr 1fr;
+		grid-template-rows: auto auto 1fr auto;
+		grid-template-areas:
+			"header header header"
+			"hero hero hero"
+			". main dock"
+			"footer footer footer";
+	}
+}
