@@ -24,10 +24,16 @@ a:hover {
     color: #ed8b00;
 }
 
-.hero {
-    /* background: url('../images/Hintergrund-Juni.jpg') no-repeat center center; */
-    /* background-size: cover;
-    min-height: 200px; */
+/* .hero {
+    background: url('../images/Hintergrund-Juni.jpg') no-repeat center center;
+    background-size: cover;
+    min-height: 200px;
+} */
+
+.no-js .hero {
+    background: url('../images/Hintergrund-Juni.jpg') no-repeat center center;
+    background-size: cover;
+    min-height: 200px;
 }
 
 .no-webp .hero {
