@@ -1,5 +1,5 @@
 
-<!DOCTYPE html><html lang=de class=no-js><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="ie=edge"><title>Oliver Epper – Fully Qualified PGA Professional &middot; oliver-epper.de</title><meta name=description content="Golfunterricht orientiert am Ballflug – Schwungumstellungen und Korrekturen nur, wenn die Ihren Ballflug tatsächlich verbessern."><meta name=keywords content="Oliver Epper, Golf lernen, Golfunterricht, Schnupperkurse, Platzreife"><meta property=og:locale content=de_DE><meta property=og:type content=website><meta property=og:title content="Oliver Epper – Fully Qualified PGA Professional"><meta property=og:description content="Golfunterricht orientiert am Ballflug – Schwungumstellungen und Korrekturen nur, wenn die Ihren Ballflug tatsächlich verbessern."><meta property=og:url content="https://oliverepper.github.io/"><link href="/static/gen/main.dbfe825c61a38bedb5c0.css?h=5f761b6d" rel=stylesheet><script>document.documentElement.classList.remove("no-js");</script><script async src="https://www.googletagmanager.com/gtag/js?id=UA-91540551-2"></script><script>window.dataLayer = window.dataLayer || [];
+<!DOCTYPE html><html lang=de class=no-js><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="ie=edge"><title>Oliver Epper – Fully Qualified PGA Professional &middot; oliver-epper.de</title><meta name=description content="Golfunterricht orientiert am Ballflug – Schwungumstellungen und Korrekturen nur, wenn die Ihren Ballflug tatsächlich verbessern."><meta name=keywords content="Oliver Epper, Golf lernen, Golfunterricht, Schnupperkurse, Platzreife"><meta property=og:locale content=de_DE><meta property=og:type content=website><meta property=og:title content="Oliver Epper – Fully Qualified PGA Professional"><meta property=og:description content="Golfunterricht orientiert am Ballflug – Schwungumstellungen und Korrekturen nur, wenn die Ihren Ballflug tatsächlich verbessern."><meta property=og:url content="https://oliverepper.github.io/"><link href="/generated/main.2264696f85278cf2b424.css?h=16f82b58" rel=stylesheet><script>document.documentElement.classList.remove("no-js");</script><script async src="https://www.googletagmanager.com/gtag/js?id=UA-91540551-2"></script><script>window.dataLayer = window.dataLayer || [];
 
         function gtag() {
             dataLayer.push(arguments);
@@ -459,7 +459,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <h3>Meinen Newsletter abonnieren</h3>
-                        <div id="spinner" class="fa fa-2x fa-spinner fa-spin" style="display: none; color: #425563">
+                        <div id="spinner" class="fas fa-2x fa-spinner fa-spin" style="display: none; color: #425563">
                         </div>
                         <div id="response" style="display: none;"></div>
                     </div>
@@ -489,34 +489,21 @@
 </main><!-- footer -->
 <footer class="footer container text-center">
     © 2019 Oliver Epper
-</footer><script src="/static/gen/vendors~main~vendor.d4218bcdca2e55b6d52d.bundle.js?h=6c4d96e9"></script><script src="/static/gen/vendors~vendor.2360ccb0630e74d9ece2.bundle.js?h=d812c96c"></script><script src="/static/gen/vendor.438c67c1d132393c520c.bundle.js?h=8f4821ec"></script><script src="/static/gen/main.968884db755a8e9558da.bundle.js?h=bc50658c"></script>
+</footer><script src="/generated/vendors~main~vendor.d4218bcdca2e55b6d52d.bundle.js?h=6c4d96e9"></script><script src="/generated/vendors~vendor.1bd289e093ff38144d45.bundle.js?h=9388de53"></script><script src="/generated/vendor.18c6f3fee114705e53f6.bundle.js?h=832dc8f9"></script><script src="/generated/main.87fa0cd83498c89f5af3.bundle.js?h=1e76e26f"></script>
 <!-- Google Maps API Key Oliver Epper -->
-<script async defer
+<!-- <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnyrutmaIBy9zK6redRXRD8deVIQt96xM&callback=initMap">
-</script>
+</script> -->
 
 <script>
-    /* Karte initialisieren und anzeigen */
-    function initMap() {
-        var geocoder = new google.maps.Geocoder();
-        geocoder.geocode({
-            'address': "Golfanlage Lietzenhof"
-        }, function (results, status) {
-            if (status == google.maps.GeocoderStatus.OK) {
-                latitude = results[0].geometry.location.lat();
-                longitude = results[0].geometry.location.lng();
-                var location = new google.maps.LatLng(latitude, longitude);
-                var mapCanvas = document.getElementById('map');
-                var mapOptions = {
-                    center: location,
-                    zoom: 16,
-                    panControl: false,
-                    mapTypeId: google.maps.MapTypeId.ROADMAP
-                }
-                var map = new google.maps.Map(mapCanvas, mapOptions);
-            }
+    /* Google Karte */
+    document.addEventListener("DOMContentLoaded", function () {
+        let mapElement = document.getElementById('map');
+
+        Map.loadGoogleMapsApi().then(function (googleMaps) {
+            Map.createMap(googleMaps, mapElement);
         });
-    }
+    });
 
     /* Newsletter validieren und anmelden */
     (function () {
