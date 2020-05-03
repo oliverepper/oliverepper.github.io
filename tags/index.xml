@@ -6,9 +6,55 @@
     <description>Recent content in Tags on oliep</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
+    <lastBuildDate>Fri, 21 Feb 2020 09:41:00 +0200</lastBuildDate>
     
 	<atom:link href="https://oliverepper.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Codables</title>
+      <link>https://oliverepper.github.io/tags/codables/</link>
+      <pubDate>Fri, 21 Feb 2020 09:41:00 +0200</pubDate>
+      
+      <guid>https://oliverepper.github.io/tags/codables/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>iOS</title>
+      <link>https://oliverepper.github.io/tags/ios/</link>
+      <pubDate>Fri, 21 Feb 2020 09:41:00 +0200</pubDate>
+      
+      <guid>https://oliverepper.github.io/tags/ios/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Swift</title>
+      <link>https://oliverepper.github.io/tags/swift/</link>
+      <pubDate>Fri, 21 Feb 2020 09:41:00 +0200</pubDate>
+      
+      <guid>https://oliverepper.github.io/tags/swift/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>CoreData</title>
+      <link>https://oliverepper.github.io/tags/coredata/</link>
+      <pubDate>Thu, 20 Feb 2020 09:41:00 +0200</pubDate>
+      
+      <guid>https://oliverepper.github.io/tags/coredata/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>xcframework</title>
+      <link>https://oliverepper.github.io/tags/xcframework/</link>
+      <pubDate>Thu, 20 Feb 2020 09:41:00 +0200</pubDate>
+      
+      <guid>https://oliverepper.github.io/tags/xcframework/</guid>
+      <description></description>
+    </item>
     
   </channel>
 </rss>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Language" content="en">
+
+    <meta name="author" content="Oliver Epper">
+    <meta name="description" content="I was looking for a way to save a lot of Codables that emerge over a potentially long timespan. Just keeping them in memory looked like the obvious thing to do but I wanted something failsafe and persistent.
+Saving a Codable to a file in Swift couldn’t be easier: JSONEncoder.encode(T) returns Data. That can be written to an URL via write(to: URL).
+But what if I want to append?
+I for sure don’t want to load the data from a file, decode it into a JSON array, append the new Codable to the array, encode the array to data and then use that data to overwrite the file.">
+    <meta name="keywords" content="Oliver Epper, Golf, Software, iOS, Swift, Python">
+
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="A deprecated way to saves Codables — but why?"/>
+<meta name="twitter:description" content="I was looking for a way to save a lot of Codables that emerge over a potentially long timespan. Just keeping them in memory looked like the obvious thing to do but I wanted something failsafe and persistent.
+Saving a Codable to a file in Swift couldn’t be easier: JSONEncoder.encode(T) returns Data. That can be written to an URL via write(to: URL).
+But what if I want to append?
+I for sure don’t want to load the data from a file, decode it into a JSON array, append the new Codable to the array, encode the array to data and then use that data to overwrite the file."/>
+
+    <meta property="og:title" content="A deprecated way to saves Codables — but why?" />
+<meta property="og:description" content="I was looking for a way to save a lot of Codables that emerge over a potentially long timespan. Just keeping them in memory looked like the obvious thing to do but I wanted something failsafe and persistent.
+Saving a Codable to a file in Swift couldn’t be easier: JSONEncoder.encode(T) returns Data. That can be written to an URL via write(to: URL).
+But what if I want to append?
+I for sure don’t want to load the data from a file, decode it into a JSON array, append the new Codable to the array, encode the array to data and then use that data to overwrite the file." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://oliverepper.github.io/posts/a-deprecated-way-to-save-codables/" />
+<meta property="article:published_time" content="2020-02-21T09:41:00+02:00" />
+<meta property="article:modified_time" content="2020-02-21T09:41:00+02:00" />
+
+
+    
+      <base href="https://oliverepper.github.io/posts/a-deprecated-way-to-save-codables/">
+    
+    <title>
+  A deprecated way to saves Codables — but why? · oliep
+</title>
+
+    
+      <link rel="canonical" href="https://oliverepper.github.io/posts/a-deprecated-way-to-save-codables/">
+    
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700%7CMerriweather:300,700%7CSource+Code+Pro:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" integrity="sha256-l85OmPOjvil/SOvVt3HnSSjzF1TUMyT9eV0c2BzEGzU=" crossorigin="anonymous" />
+
+    
+      
+      
+      <link rel="stylesheet" href="https://oliverepper.github.io/css/coder.min.a4f332213a21ce8eb521670c614470c58923aaaf385e2a73982c31dd7642decb.css" integrity="sha256-pPMyITohzo61IWcMYURwxYkjqq84XipzmCwx3XZC3ss=" crossorigin="anonymous" media="screen" />
+    
+
+    
+
+    
+
+    
+      <link rel="stylesheet" href="https://oliverepper.github.io/css/custom.css" />
+    
+
+    
+
+    <link rel="icon" type="image/png" href="https://oliverepper.github.io/images/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://oliverepper.github.io/images/favicon-16x16.png" sizes="16x16">
+
+    <meta name="generator" content="Hugo 0.69.2" />
+  </head>
+
+  
+  
+  <body class="colorscheme-light">
+    <main class="wrapper">
+      <nav class="navigation">
+  <section class="container">
+    <a class="navigation-title" href="https://oliverepper.github.io/">
+      oliep
+    </a>
+    
+    <input type="checkbox" id="menu-toggle" />
+    <label class="menu-button float-right" for="menu-toggle"><i class="fas fa-bars"></i></label>
+    <ul class="navigation-list">
+      
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://oliverepper.github.io/posts/">Blog</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://golf.oliver-epper.de">Golf</a>
+          </li>
+        
+          <li class="navigation-item">
+            <a class="navigation-link" href="https://oliverepper.github.io/about/">About</a>
+          </li>
+        
+      
+      
+    </ul>
+    
+  </section>
+</nav>
+
+
+      <div class="content">
+        
+  <section class="container post">
+    <article>
+      <header>
+        <div class="post-title">
+          <h1 class="title">A deprecated way to saves Codables — but why?</h1>
+        </div>
+        <div class="post-meta">
+          <div class="date">
+            <span class="posted-on">
+              <i class="fas fa-calendar"></i>
+              <time datetime='2020-02-21T09:41:00&#43;02:00'>
+                February 21, 2020
+              </time>
+            </span>
+            <span class="reading-time">
+              <i class="fas fa-clock"></i>
+              3-minute read
+            </span>
+          </div>
+          
+          <div class="tags">
+  <i class="fas fa-tag"></i>
+    <a href="https://oliverepper.github.io/tags/ios/">iOS</a>
+      <span class="separator">•</span>
+    <a href="https://oliverepper.github.io/tags/swift/">Swift</a>
+      <span class="separator">•</span>
+    <a href="https://oliverepper.github.io/tags/codables/">Codables</a></div>
+
+        </div>
+      </header>
+
+      <div>
+        
+        <p>I was looking for a way to save a lot of Codables that emerge over a potentially long timespan. Just keeping them in memory looked like the obvious thing to do but I wanted something failsafe and persistent.</p>
+<p>Saving a Codable to a file in Swift couldn’t be easier: <code>JSONEncoder.encode(T)</code> returns <code>Data</code>. That can be written to an <code>URL</code> via <code>write(to: URL)</code>.</p>
+<p>But what if I want to append?</p>
+<p>I for sure don’t want to load the data from a file, decode it into a JSON array, append the new Codable to the array, encode the array to data and then use that data to overwrite the file.</p>
+<p>I do the following:</p>
+<p>An instance of <code>CodableFileBuffer&lt;T&gt;</code> keeps an open FileHandle on an URL and whenever I call <code>append(codable)</code> on that buffer it encodes to data and writes that data to the file handle.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Swift" data-lang="Swift"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">func</span> <span style="color:#a6e22e">append</span>(<span style="color:#66d9ef">_</span> codable: T) {
+    <span style="color:#75715e">// encode codable</span>
+    <span style="color:#66d9ef">guard</span> <span style="color:#66d9ef">let</span> data = <span style="color:#66d9ef">try</span>? encoder.encode(codable) <span style="color:#66d9ef">else</span> {
+        fatalError(<span style="color:#e6db74">&#34;Cannot encode </span><span style="color:#e6db74">\(</span>codable<span style="color:#e6db74">)</span><span style="color:#e6db74">&#34;</span>)
+    }
+
+    <span style="color:#75715e">// write to FileHandle</span>
+    fileHandle.write(data)
+    fileHandle.write(<span style="color:#e6db74">&#34;,&#34;</span>.data(using: .utf8)<span style="color:#f92672">!</span>)
+
+    <span style="color:#75715e">// log</span>
+    os_log(<span style="color:#e6db74">&#34;Did append codable to CodableFileBuffer at: %@&#34;</span>, log: OSLog.CodableFileBuffer, type: .debug, fileURL.lastPathComponent)
+}
+</code></pre></div><p>This could use a little more error handling but it is just for demo purpose. Bare with me.</p>
+<p>The only thing not completely obvious happens on line 9. This ist just the comma that is required to form a JSON array. When I create the FileHandle I immediately write an opening square bracket to the file and the <code>retrieve() -&gt; [Codable]</code> function appends the closing square-bracket to the data before it passes it to the JSONDecoder.</p>
+<p>So the files content loos like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-txt" data-lang="txt">// after initializing
+[
+  
+// after writing the first codable
+[{&#34;id&#34;:1, &#34;key&#34;: &#34;value_one&#34;},
+ 
+// after writing the second codable
+[{&#34;id&#34;:1, &#34;key&#34;: &#34;value_one&#34;},{&#34;id&#34;:2, &#34;key&#34;: &#34;another_value&#34;},
+
+// the data that gets passed to the JSONDecoder looks like this
+[{&#34;id&#34;:1, &#34;key&#34;: &#34;value_one&#34;},{&#34;id&#34;:2, &#34;key&#34;: &#34;another_value&#34;},]
+</code></pre></div><p>I know the trailing comma is ugly and no valid json. It would be an easy fix but actually the <code>JSONDecoder</code> is pretty forgiving, here.</p>
+<p>So what do we have now?</p>
+<p>We have a Buffer that can be used like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Swift" data-lang="Swift"><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">MyCodable</span>: Codable {
+    <span style="color:#66d9ef">var</span> id: Int
+    <span style="color:#66d9ef">var</span> key: String
+}
+
+<span style="color:#66d9ef">let</span> buffer = CodableFileBuffer&lt;MyCodable&gt;()
+
+buffer.append(MyCodable(id: <span style="color:#ae81ff">1</span>, key: <span style="color:#e6db74">&#34;value_one&#34;</span>))
+buffer.append(MyCodable(id: <span style="color:#ae81ff">2</span>, key: <span style="color:#e6db74">&#34;another_value&#34;</span>))
+
+<span style="color:#66d9ef">let</span> myCodables = buffer.retrieve()
+</code></pre></div><p>Neat, isn’t it?</p>
+<p>I use it to append thousands of Codables and it works pretty nice, so far. I measured it with instruments using tens of thousands to Codables. And I use it on real devices running for days.</p>
+<p>Here’s the complete thing:</p>
+<p><a href="https://github.com/oliverepper/CodableFileBuffer">CodeableFileBuffer</a></p>
+<p>So what’s next?</p>
+<p>I have a few questions I’d like to discuss:</p>
+<ol>
+<li>Why is <code>FileHandle.write</code> deprecated? It sure doesn’t look swifty. It can throw exceptions without beeing marked as throwing.</li>
+<li>How are we supposed to replace this? How does the <code>writeabilityHandler</code> work? Can anyone provide an example?</li>
+<li>What do you think? I guess there must be other or better ways to buffer Codables on disk.</li>
+</ol>
+<p>I’d really appreciate your ideas.</p>
+
+      </div>
+
+
+      <footer>
+        
+
+
+        
+        
+        
+      </footer>
+    </article>
+
+    
+  </section>
+
+      </div>
+
+      
+  <footer class="footer">
+    <section class="container">
+      
+      
+        ©
+        
+        2020
+         Oliver Epper 
+      
+      
+         · 
+        Powered by <a href="https://gohugo.io/">Hugo</a> & <a href="https://github.com/luizdepra/hugo-coder/">Coder</a>.
+      
+      
+    </section>
+  </footer>
+
+    </main>
+
+    
+
+    
+
+    
+
+  </body>
+
+</html>
