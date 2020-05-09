@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SwiftUI on oliep</title>
+    <link>https://oliverepper.github.io/tags/swiftui/</link>
+    <description>Recent content in SwiftUI on oliep</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 08 May 2020 09:41:00 +0200</lastBuildDate>
+    
+	<atom:link href="https://oliverepper.github.io/tags/swiftui/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>How to create a self sizing gauge component in SwiftUI</title>
+      <link>https://oliverepper.github.io/posts/how-to-create-a-self-sizing-gauge-componen-in-swiftui/</link>
+      <pubDate>Fri, 08 May 2020 09:41:00 +0200</pubDate>
+      
+      <guid>https://oliverepper.github.io/posts/how-to-create-a-self-sizing-gauge-componen-in-swiftui/</guid>
+      <description>&lt;p&gt;SwiftUI is really great and building custom UI is actually pretty straight forward. We will use &lt;em&gt;function builders&lt;/em&gt; and &lt;em&gt;preference keys&lt;/em&gt; to build a component that looks like this:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://oliverepper.github.io/images/GaugeTests_lightmode.png&#34; alt=&#34;gauges&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The gauge features a center view that the user can either provide or the gauge will automatically show a text presenting it&amp;rsquo;s value.
+So once we have our gauge component ready it can be used like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-Swift&#34; data-lang=&#34;Swift&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Simplest use possible, the Gauge will construct a centerView that shows: &amp;#39;\(value) %&amp;#39;.&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;// To prevent constant resizings when passing in other values the centerView width is calculated&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;// from the string: &amp;#39;100 %&amp;#39;&lt;/span&gt;
+Gauge(value: value)
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// provide your own centerView.&lt;/span&gt;
+Gauge(value: value) {
+    Text(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;This is a fixed text&amp;#34;&lt;/span&gt;)
+}
+
+Gauge(value: value) {
+    Image(systemName: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;headphones&amp;#34;&lt;/span&gt;)
+        .resizable()
+        .frame(width: &lt;span style=&#34;color:#ae81ff&#34;&gt;55&lt;/span&gt;, height: &lt;span style=&#34;color:#ae81ff&#34;&gt;55&lt;/span&gt;)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The gauge will automatically adjust its size depending on the size of the center view.&lt;/p&gt;
+&lt;h2 id=&#34;how-is-this-build&#34;&gt;How is this build&lt;/h2&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-Swift&#34; data-lang=&#34;Swift&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;SwiftUI&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Gauge&lt;/span&gt;&amp;lt;T&amp;gt;: View &lt;span style=&#34;color:#66d9ef&#34;&gt;where&lt;/span&gt; T: View {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; centerView: T
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; value: Double
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; thickness: CGFloat = &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; scale: CGFloat = &lt;span style=&#34;color:#ae81ff&#34;&gt;1.777&lt;/span&gt;
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; gradient = AngularGradient(
+        gradient: Gradient(
+            colors: [
+                .red,
+                .green
+            ]
+        ),
+        center: .center
+    )
+    
+    @State &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; diameter: CGFloat = &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;init&lt;/span&gt;(value: Double, @GaugeBuilder builder: () -&amp;gt; T) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;.value = value
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;.centerView = builder()
+    }
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; body: some View {
+        ZStack {
+            centerView.background(
+                GeometryReader { proxy &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt;
+                    Color.clear.preference(key: GaugeWidthPreferenceKey.&lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;, value: proxy.size.width)
+                }
+            )
+            Group {
+                Circle()
+                    .stroke(Color.primary.opacity(&lt;span style=&#34;color:#ae81ff&#34;&gt;0.2&lt;/span&gt;), style: .&lt;span style=&#34;color:#66d9ef&#34;&gt;init&lt;/span&gt;(lineWidth: thickness&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;scale, dash: [&lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;]))
+                Circle()
+                    .trim(from: &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, to: CGFloat(value&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;))
+                    .stroke(gradient, style: .&lt;span style=&#34;color:#66d9ef&#34;&gt;init&lt;/span&gt;(lineWidth: thickness))
+            }
+            .padding(thickness&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;)
+            .rotationEffect(.degrees(&lt;span style=&#34;color:#ae81ff&#34;&gt;90&lt;/span&gt;))
+            .frame(width: diameter, height: diameter)
+        }.onPreferenceChange(GaugeWidthPreferenceKey.&lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;) { width &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt;
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;.diameter = width &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;.scale
+        }
+    }
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;extension&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Gauge&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;where&lt;/span&gt; T == ZStack&amp;lt;TupleView&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;(Text, Text)&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&amp;gt;&lt;/span&gt; {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;init&lt;/span&gt;(value: Double) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;.value = value
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;self&lt;/span&gt;.centerView = ZStack {
+            Text(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;100 %&amp;#34;&lt;/span&gt;).foregroundColor(.clear)
+            Text(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;\(&lt;/span&gt;value, specifier: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%.0f&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; %&amp;#34;&lt;/span&gt;)
+        }
+    }
+}
+
+@_functionBuilder
+&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;GaugeBuilder&lt;/span&gt; {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;buildBlock&lt;/span&gt;&amp;lt;T: View&amp;gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;_&lt;/span&gt; centerView: T) -&amp;gt; T {
+        centerView
+    }
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;GaugeWidthPreferenceKey&lt;/span&gt;: PreferenceKey {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;typealias&lt;/span&gt; Value = CGFloat
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; defaultValue: CGFloat = &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;reduce&lt;/span&gt;(value: &lt;span style=&#34;color:#66d9ef&#34;&gt;inout&lt;/span&gt; CGFloat, nextValue: () -&amp;gt; CGFloat) {
+        value = nextValue()
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So that&amp;rsquo;s the complete thing.  There are a few things worth mentioning.&lt;/p&gt;
+&lt;h3 id=&#34;function-builder&#34;&gt;Function Builder&lt;/h3&gt;
+&lt;p&gt;This is the magic behind the nice SwiftUI DSL. The &lt;code&gt;buildBlock&lt;/code&gt; function returns what gets passed as the trailing closure to the Gauge. So instead of this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-Swift&#34; data-lang=&#34;Swift&#34;&gt;Gauge(value: value, centerView: Text(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;\(&lt;/span&gt;value&lt;span style=&#34;color:#e6db74&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; %&amp;#34;&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;you can write:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-Swift&#34; data-lang=&#34;Swift&#34;&gt;Gauge(value: value) {
+    Text(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;\(&lt;/span&gt;value&lt;span style=&#34;color:#e6db74&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; %&amp;#34;&lt;/span&gt;)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;preference-key&#34;&gt;Preference Key&lt;/h3&gt;
+&lt;p&gt;In SwiftUI preference keys provide the possibility for a child view to pass values to it&amp;rsquo;s ancestors. While environment objects are visible to child views, preference keys are visible to parents.
+What we want to achive is that the Gauge knows the width of it&amp;rsquo;s &lt;code&gt;centerView&lt;/code&gt; and adjusts the circles accordingly. So we add the &lt;code&gt;.background&lt;/code&gt;-modifier to the &lt;code&gt;centerView&lt;/code&gt; and fill it&amp;rsquo;s background with a transparent color. We use the &lt;code&gt;GeometryReader&lt;/code&gt;&#39;s proxy to get the size of the invisible Color and save that in the &lt;code&gt;GaugeWidthPreferenceKey&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now we can use the &lt;code&gt;.onPreferenceChange&lt;/code&gt;-modifier on the outer ZStack to calculate the diameter of our circles. Since diamater is a &lt;code&gt;@State&lt;/code&gt;-property the body-property of the Gauge will be evaluated and our circles are drawn with the desired diameter. Very cool!&lt;/p&gt;
+&lt;h3 id=&#34;providing-a-default-center-view&#34;&gt;Providing a default center view&lt;/h3&gt;
+&lt;p&gt;There&amp;rsquo;s one more thing required to make the Gauge work without the need to provide a centerView. We need an initializer takes only the value as an argument. This can be done with an extension of the Gauge using conditional conformance.&lt;/p&gt;
+&lt;h3 id=&#34;why-conformance-to-zstacktupleviewtext-text&#34;&gt;Why conformance to &lt;code&gt;ZStack&amp;lt;TupleView&amp;lt;(Text, Text)&amp;gt;&amp;gt;&lt;/code&gt;?&lt;/h3&gt;
+&lt;p&gt;In order to prevent the Gauge to change it&amp;rsquo;s size with every different value between 0 and 100 % I build a default centerView that has the invisible string &amp;ldquo;100 %&amp;rdquo; and centered on top of this the string representing the actual value. So the centerView will always have the same width.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
