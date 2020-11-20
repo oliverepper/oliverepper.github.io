@@ -1,4 +1,222 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Tue, 17 Nov 2020 19:04:41 +0100</lastBuildDate><pubDate>Tue, 17 Nov 2020 19:04:41 +0100</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-a-document-based-editor-with-xib-files-and-swifty-cocoa-bindings</guid><title>Create a document based editor with xib files and swifty cocoa bindings</title><description>How to create document based editor with xib files and Cocoa Bindings</description><link>https://oliver-epper.de/posts/create-a-document-based-editor-with-xib-files-and-swifty-cocoa-bindings</link><pubDate>Mon, 16 Nov 2020 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>While learning how to write really good Mac Apps I figured that I simply cannot rely on SwiftUI alone, just yet. SwiftUI is really cool but AppKit has so much to offer and SwiftUI still lacks a few bits and pieces on the Mac. If you're interested in building a document based app in SwiftUI, Gui Rambo has a nice article <a href="https://wwdcbysundell.com/2020/creating-document-based-apps-in-swiftui/">Creating document-based apps using SwiftUI</a>.</p><h2>Create the App</h2><p>While I do like to use Interface Builder sometimes I didn't want to use Storyboards, here. So let's start by creating a "Document App" and choose XIB for the interface type. If you run the app you should see something like this:</p><figure>
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Fri, 20 Nov 2020 16:25:19 +0100</lastBuildDate><pubDate>Fri, 20 Nov 2020 16:25:19 +0100</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-a-document-based-editor-from-scratch-as-a-swift-package</guid><title>Create a document based editor from scratch as a swift package</title><description>How to create document based editor without Xcode templates, Srotyboards and XIBs</description><link>https://oliver-epper.de/posts/create-a-document-based-editor-from-scratch-as-a-swift-package</link><pubDate>Thu, 19 Nov 2020 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>I thought I had most of the information for this ready from either <a href="https://rderik.com/blog/understanding-a-few-concepts-of-macos-applications-by-building-an-agent-based-menu-bar-app/">Derik Ramirez's</a> great blog or the great article <a href="https://medium.com/@theboi/creating-macos-apps-without-a-storyboard-or-xib-file-516115ee9d26">Creating macOS apps without a storyboard or .xib file with Swift 5</a> from Ryan Theodore The. But I ran into some real hard to figure out pices that where all answered by the great guys from <a href="https://www.objc.io">objc.io</a> — I am a happy subscriber 😀</p><h2>Create a Hello World App</h2><pre><code><div class="highlight"><span></span>mkdir ~/Desktop/Scratched
+<span class="nb">cd</span> ~/Desktop/Scratched
+swift package init --type executable
+xed .
+</div></code></pre><h3>Create an AppDelegate</h3><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Cocoa</span>
+<span class="kd">import</span> <span class="nc">os</span><span class="p">.</span><span class="nc">log</span>
+
+<span class="kd">class</span> <span class="nc">AppDelegate</span><span class="p">:</span> <span class="bp">NSObject</span><span class="p">,</span> <span class="n">NSApplicationDelegate</span> <span class="p">{</span>
+
+    <span class="kd">func</span> <span class="nf">applicationDidFinishLaunching</span><span class="p">(</span><span class="kc">_</span> <span class="n">notification</span><span class="p">:</span> <span class="n">Notification</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">os_log</span><span class="p">(.</span><span class="n">debug</span><span class="p">,</span> <span class="s">&quot;%@ started&quot;</span><span class="p">,</span> <span class="n">ProcessInfo</span><span class="p">.</span><span class="n">processInfo</span><span class="p">.</span><span class="n">processName</span> <span class="k">as</span> <span class="n">CVarArg</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Remeber to set the target platform in Package.swift for this to work.</p><pre><code><div class="highlight"><span></span><span class="kd">let</span> <span class="nv">package</span> <span class="p">=</span> <span class="n">Package</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&quot;Scratched&quot;</span><span class="p">,</span>
+    <span class="n">platforms</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">macOS</span><span class="p">(</span><span class="s">&quot;11&quot;</span><span class="p">)</span>
+    <span class="p">],...</span>
+</div></code></pre><h3>Update the main.swift file</h3><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Cocoa</span>
+
+<span class="kd">let</span> <span class="nv">app</span> <span class="p">=</span> <span class="n">NSApplication</span><span class="p">.</span><span class="n">shared</span>
+<span class="kd">let</span> <span class="nv">delegate</span> <span class="p">=</span> <span class="n">AppDelegate</span><span class="p">()</span>
+<span class="n">app</span><span class="p">.</span><span class="n">delegate</span> <span class="p">=</span> <span class="n">delegate</span>
+<span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">()</span>
+</div></code></pre><p>Now you can press cmd-r and you should see the log message.</p><h2>Make it document based</h2><h3>Create a model class</h3><p>Let's reuse the same class I used <a href="https://oliver-epper.de/posts/create-a-document-based-editor-with-xib-files-and-swifty-cocoa-bindings/">here</a></p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Foundation</span>
+
+<span class="kd">class</span> <span class="nc">Content</span><span class="p">:</span> <span class="bp">NSObject</span> <span class="p">{</span>
+    <span class="kr">@objc</span> <span class="kr">dynamic</span> <span class="kd">var</span> <span class="nv">contentString</span><span class="p">:</span> <span class="nb">String</span>
+
+    <span class="kd">init</span><span class="p">(</span><span class="n">contentString</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">contentString</span> <span class="p">=</span> <span class="n">contentString</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="nc">Content</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">read</span><span class="p">(</span><span class="n">from</span> <span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">contentString</span> <span class="p">=</span> <span class="nb">String</span><span class="p">(</span><span class="n">bytes</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="p">.</span><span class="n">utf8</span><span class="p">)</span> <span class="p">??</span> <span class="s">&quot;&quot;</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">data</span><span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Data</span> <span class="p">{</span>
+        <span class="n">contentString</span><span class="p">.</span><span class="n">data</span><span class="p">(</span><span class="n">using</span><span class="p">:</span> <span class="p">.</span><span class="n">utf8</span><span class="p">)</span> <span class="p">??</span> <span class="n">Data</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Before we create the Document type let's create a ViewController.</p><h3>Create a ViewController</h3><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Cocoa</span>
+<span class="kd">import</span> <span class="nc">os</span><span class="p">.</span><span class="nc">log</span>
+
+<span class="kr">final</span> <span class="kd">class</span> <span class="nc">ViewController</span><span class="p">:</span> <span class="n">NSViewController</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">textView</span> <span class="p">=</span> <span class="n">NSTextView</span><span class="p">()</span>
+
+    <span class="kr">override</span> <span class="kd">func</span> <span class="nf">loadView</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nv">scrollView</span> <span class="p">=</span> <span class="n">NSScrollView</span><span class="p">()</span>
+        <span class="n">scrollView</span><span class="p">.</span><span class="n">hasVerticalScroller</span> <span class="p">=</span> <span class="kc">true</span>
+
+        <span class="n">textView</span><span class="p">.</span><span class="n">isRichText</span> <span class="p">=</span> <span class="kc">false</span>
+        <span class="n">textView</span><span class="p">.</span><span class="n">allowsUndo</span> <span class="p">=</span> <span class="kc">true</span>
+        <span class="n">textView</span><span class="p">.</span><span class="n">autoresizingMask</span> <span class="p">=</span> <span class="p">[.</span><span class="n">width</span><span class="p">]</span>
+        <span class="n">scrollView</span><span class="p">.</span><span class="n">documentView</span> <span class="p">=</span> <span class="n">textView</span>
+
+        <span class="kc">self</span><span class="p">.</span><span class="n">view</span> <span class="p">=</span> <span class="n">scrollView</span>
+    <span class="p">}</span>
+
+    <span class="kr">override</span> <span class="kd">func</span> <span class="nf">viewDidLoad</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kc">super</span><span class="p">.</span><span class="n">viewDidLoad</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="kd">let</span> <span class="nv">content</span> <span class="p">=</span> <span class="n">representedObject</span> <span class="k">as</span><span class="p">?</span> <span class="n">Content</span> <span class="p">{</span>
+            <span class="n">textView</span><span class="p">.</span><span class="n">bind</span><span class="p">(.</span><span class="n">value</span><span class="p">,</span> <span class="n">to</span><span class="p">:</span> <span class="n">content</span><span class="p">,</span> <span class="n">keyPath</span><span class="p">:</span> <span class="err">\</span><span class="p">.</span><span class="n">contentString</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="p">[</span><span class="n">NSBindingOption</span><span class="p">.</span><span class="n">continuouslyUpdatesValue</span><span class="p">:</span> <span class="kc">true</span><span class="p">])</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">extension</span> <span class="bp">NSObject</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">bind</span><span class="p">&lt;</span><span class="n">Root</span><span class="p">,</span> <span class="n">Value</span><span class="p">&gt;(</span><span class="kc">_</span> <span class="n">binding</span><span class="p">:</span> <span class="n">NSBindingName</span><span class="p">,</span> <span class="n">to</span> <span class="n">observable</span><span class="p">:</span> <span class="n">Root</span><span class="p">,</span> <span class="n">keyPath</span><span class="p">:</span> <span class="n">KeyPath</span><span class="p">&lt;</span><span class="n">Root</span><span class="p">,</span> <span class="n">Value</span><span class="p">&gt;,</span> <span class="n">options</span><span class="p">:</span> <span class="p">[</span><span class="n">NSBindingOption</span><span class="p">:</span> <span class="nb">Any</span><span class="p">]?</span> <span class="p">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="kd">let</span> <span class="nv">kvcKeyPath</span> <span class="p">=</span> <span class="n">keyPath</span><span class="p">.</span><span class="n">_kvcKeyPathString</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">os_log</span><span class="p">(</span><span class="s">&quot;KeyPath does not contain @objc exposed values&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="p">}</span>
+        <span class="n">bind</span><span class="p">(</span><span class="n">binding</span><span class="p">,</span> <span class="n">to</span><span class="p">:</span> <span class="n">observable</span><span class="p">,</span> <span class="n">withKeyPath</span><span class="p">:</span> <span class="n">kvcKeyPath</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">options</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><h3>Create the document class</h3><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Cocoa</span>
+
+<span class="kd">class</span> <span class="nc">Document</span><span class="p">:</span> <span class="n">NSDocument</span> <span class="p">{</span>
+    <span class="kr">@objc</span> <span class="kr">dynamic</span> <span class="kd">var</span> <span class="nv">content</span> <span class="p">=</span> <span class="n">Content</span><span class="p">(</span><span class="n">contentString</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="kd">private</span> <span class="kr">lazy</span> <span class="kd">var</span> <span class="nv">viewController</span> <span class="p">=</span> <span class="n">ViewController</span><span class="p">()</span>
+
+    <span class="kr">override</span> <span class="kd">func</span> <span class="nf">makeWindowControllers</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">viewController</span><span class="p">.</span><span class="n">representedObject</span> <span class="p">=</span> <span class="n">content</span>
+        <span class="kd">let</span> <span class="nv">window</span> <span class="p">=</span> <span class="n">NSWindow</span><span class="p">(</span><span class="n">contentViewController</span><span class="p">:</span> <span class="n">viewController</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">.</span><span class="n">setContentSize</span><span class="p">(</span><span class="n">NSSize</span><span class="p">(</span><span class="n">width</span><span class="p">:</span> <span class="mi">640</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="mi">480</span><span class="p">))</span>
+        <span class="kd">let</span> <span class="nv">wc</span> <span class="p">=</span> <span class="n">NSWindowController</span><span class="p">(</span><span class="n">window</span><span class="p">:</span> <span class="n">window</span><span class="p">)</span>
+        <span class="n">addWindowController</span><span class="p">(</span><span class="n">wc</span><span class="p">)</span>
+        <span class="n">wc</span><span class="p">.</span><span class="n">contentViewController</span> <span class="p">=</span> <span class="n">viewController</span>
+        <span class="n">window</span><span class="p">.</span><span class="n">setFrameAutosaveName</span><span class="p">(</span><span class="s">&quot;window_frame&quot;</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">.</span><span class="n">makeKeyAndOrderFront</span><span class="p">(</span><span class="kc">nil</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><h3>Create the document controller class</h3><p>This is important to tell the system about our Document class. I learned this from <a href="https://www.objc.io">objc.io</a>.</p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Cocoa</span>
+
+<span class="kd">class</span> <span class="nc">DocumentController</span><span class="p">:</span> <span class="n">NSDocumentController</span> <span class="p">{</span>
+    <span class="kr">override</span> <span class="kd">var</span> <span class="nv">documentClassNames</span><span class="p">:</span> <span class="p">[</span><span class="nb">String</span><span class="p">]</span> <span class="p">{</span>
+        <span class="p">[</span><span class="s">&quot;Document&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="kr">override</span> <span class="kd">var</span> <span class="nv">defaultType</span><span class="p">:</span> <span class="nb">String</span><span class="p">?</span> <span class="p">{</span>
+        <span class="s">&quot;Document&quot;</span>
+    <span class="p">}</span>
+
+    <span class="kr">override</span> <span class="kd">func</span> <span class="nf">documentClass</span><span class="p">(</span><span class="n">forType</span> <span class="n">typeName</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nb">AnyClass</span><span class="p">?</span> <span class="p">{</span>
+        <span class="n">Document</span><span class="p">.</span><span class="kc">self</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p><strong>Now comes the fun part!</strong></p><p>To actually hook this up we need to add the following to the AppDelegate:</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">applicationWillFinishLaunching</span><span class="p">(</span><span class="kc">_</span> <span class="n">notification</span><span class="p">:</span> <span class="n">Notification</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kc">_</span> <span class="p">=</span> <span class="n">DocumentController</span><span class="p">()</span>
+<span class="p">}</span>
+</div></code></pre><p>Please take note that this is not <code>didFinish</code>, but <code>WillFinish</code>! As Florian from <a href="https://www.objc.io">objc.io</a> pointed out: <strong>The first instance of a NSDocumentController in your app becomes the document controller of your app!</strong></p><p>And one more thing:</p><p>Normally you would have an entry like this in your Info.plist</p><pre><code><div class="highlight"><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="cp">&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;</span>
+<span class="nt">&lt;plist</span> <span class="na">version=</span><span class="s">&quot;1.0&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;dict&gt;</span>
+    <span class="nt">&lt;key&gt;</span>NSPrincipalClass<span class="nt">&lt;/key&gt;</span>
+    <span class="nt">&lt;string&gt;</span>NSApplication<span class="nt">&lt;/string&gt;</span>
+<span class="nt">&lt;/dict&gt;</span>
+<span class="nt">&lt;/plist&gt;</span>
+</div></code></pre><p>This tells the system that your app is a regular app. In code we add this to the main.swift:</p><pre><code><div class="highlight"><span></span><span class="n">app</span><span class="p">.</span><span class="n">setActivationPolicy</span><span class="p">(.</span><span class="n">regular</span><span class="p">)</span>
+</div></code></pre><p>add it before the call to <code>run()</code>.</p><p>You should be able to start the app and type into the NSTextView, now.</p><h3>Let's create the menu</h3><p>I initially found this in Ryan's article:</p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Cocoa</span>
+
+<span class="kd">class</span> <span class="nc">Menu</span><span class="p">:</span> <span class="n">NSMenu</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="kr">lazy</span> <span class="kd">var</span> <span class="nv">appName</span> <span class="p">=</span> <span class="n">ProcessInfo</span><span class="p">.</span><span class="n">processInfo</span><span class="p">.</span><span class="n">processName</span>
+
+    <span class="kr">override</span> <span class="kd">init</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kc">super</span><span class="p">.</span><span class="kd">init</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="n">title</span><span class="p">)</span>
+
+        <span class="c1">// App Menu</span>
+        <span class="kd">let</span> <span class="nv">appMenu</span> <span class="p">=</span> <span class="n">NSMenuItem</span><span class="p">()</span>
+        <span class="n">appMenu</span><span class="p">.</span><span class="n">submenu</span> <span class="p">=</span> <span class="n">NSMenu</span><span class="p">()</span>
+        <span class="n">appMenu</span><span class="p">.</span><span class="n">submenu</span><span class="p">?.</span><span class="n">items</span> <span class="p">=</span> <span class="p">[</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;About </span><span class="si">\(</span><span class="n">appName</span><span class="si">)</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="k">#selector</span><span class="p">(</span><span class="n">NSApplication</span><span class="p">.</span><span class="n">orderFrontStandardAboutPanel</span><span class="p">(</span><span class="kc">_</span><span class="p">:)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;&quot;</span><span class="p">),</span>
+            <span class="n">NSMenuItem</span><span class="p">.</span><span class="n">separator</span><span class="p">(),</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Quit&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="k">#selector</span><span class="p">(</span><span class="n">NSApplication</span><span class="p">.</span><span class="n">terminate</span><span class="p">(</span><span class="kc">_</span><span class="p">:)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;q&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+        
+        <span class="c1">// File Menu</span>
+        <span class="kd">let</span> <span class="nv">fileMenu</span> <span class="p">=</span> <span class="n">NSMenuItem</span><span class="p">()</span>
+        <span class="n">fileMenu</span><span class="p">.</span><span class="n">submenu</span> <span class="p">=</span> <span class="n">NSMenu</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;File&quot;</span><span class="p">)</span>
+        <span class="n">fileMenu</span><span class="p">.</span><span class="n">submenu</span><span class="p">?.</span><span class="n">items</span> <span class="p">=</span> <span class="p">[</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;New&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="k">#selector</span><span class="p">(</span><span class="n">NSDocumentController</span><span class="p">.</span><span class="n">newDocument</span><span class="p">(</span><span class="kc">_</span><span class="p">:)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;n&quot;</span><span class="p">),</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Open&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="k">#selector</span><span class="p">(</span><span class="n">NSDocumentController</span><span class="p">.</span><span class="n">openDocument</span><span class="p">(</span><span class="kc">_</span><span class="p">:)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;o&quot;</span><span class="p">),</span>
+            <span class="n">NSMenuItem</span><span class="p">.</span><span class="n">separator</span><span class="p">(),</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Close&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="k">#selector</span><span class="p">(</span><span class="n">NSWindow</span><span class="p">.</span><span class="n">performClose</span><span class="p">(</span><span class="kc">_</span><span class="p">:)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;w&quot;</span><span class="p">),</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Save&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="k">#selector</span><span class="p">(</span><span class="n">NSDocument</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="kc">_</span><span class="p">:)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;s&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="c1">// Edit Menu</span>
+        <span class="kd">let</span> <span class="nv">editMenu</span> <span class="p">=</span> <span class="n">NSMenuItem</span><span class="p">()</span>
+        <span class="n">editMenu</span><span class="p">.</span><span class="n">submenu</span> <span class="p">=</span> <span class="n">NSMenu</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Edit&quot;</span><span class="p">)</span>
+        <span class="n">editMenu</span><span class="p">.</span><span class="n">submenu</span><span class="p">?.</span><span class="n">items</span> <span class="p">=</span> <span class="p">[</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Undo&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">Selector</span><span class="p">((</span><span class="s">&quot;undo:&quot;</span><span class="p">)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;z&quot;</span><span class="p">),</span>
+            <span class="n">NSMenuItem</span><span class="p">(</span><span class="n">title</span><span class="p">:</span> <span class="s">&quot;Redo&quot;</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">Selector</span><span class="p">((</span><span class="s">&quot;redo:&quot;</span><span class="p">)),</span> <span class="n">keyEquivalent</span><span class="p">:</span> <span class="s">&quot;Z&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">items</span> <span class="p">=</span> <span class="p">[</span><span class="n">appMenu</span><span class="p">,</span> <span class="n">fileMenu</span><span class="p">,</span> <span class="n">editMenu</span><span class="p">]</span>
+    <span class="p">}</span>
+    
+    <span class="kr">required</span> <span class="kd">init</span><span class="p">(</span><span class="n">coder</span><span class="p">:</span> <span class="bp">NSCoder</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kc">super</span><span class="p">.</span><span class="kd">init</span><span class="p">(</span><span class="n">coder</span><span class="p">:</span> <span class="n">coder</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>to hook it up edit main.swift:</p><pre><code><div class="highlight"><span></span><span class="kd">let</span> <span class="nv">menu</span> <span class="p">=</span> <span class="n">Menu</span><span class="p">()</span>
+<span class="n">app</span><span class="p">.</span><span class="n">menu</span> <span class="p">=</span> <span class="n">menu</span>
+</div></code></pre><h3>Enable open and save</h3><p>add this to Document.swift:</p><pre><code><div class="highlight"><span></span><span class="kr">override</span> <span class="kd">func</span> <span class="nf">data</span><span class="p">(</span><span class="n">ofType</span> <span class="n">typeName</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="kr">throws</span> <span class="p">-&gt;</span> <span class="n">Data</span> <span class="p">{</span>
+  <span class="n">viewController</span><span class="p">.</span><span class="n">textView</span><span class="p">.</span><span class="n">breakUndoCoalescing</span><span class="p">()</span>
+	<span class="k">return</span> <span class="n">content</span><span class="p">.</span><span class="n">data</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kr">override</span> <span class="kd">func</span> <span class="nf">read</span><span class="p">(</span><span class="n">from</span> <span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">,</span> <span class="n">ofType</span> <span class="n">typeName</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="kr">throws</span> <span class="p">{</span>
+	<span class="n">content</span><span class="p">.</span><span class="n">read</span><span class="p">(</span><span class="n">from</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+<span class="p">}</span>
+</div></code></pre><p>and these to tell the system that we handle normal text-files:</p><pre><code><div class="highlight"><span></span><span class="kr">override</span> <span class="kd">class</span> <span class="nc">var</span> <span class="n">readableTypes</span><span class="p">:</span> <span class="p">[</span><span class="nb">String</span><span class="p">]</span> <span class="p">{</span>
+  <span class="p">[</span><span class="s">&quot;public.text&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="kr">override</span> <span class="kd">class</span> <span class="nc">func</span> <span class="n">isNativeType</span><span class="p">(</span><span class="kc">_</span> <span class="n">type</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="nb">Bool</span> <span class="p">{</span>
+  <span class="kc">true</span>
+<span class="p">}</span>
+</div></code></pre><h3>Magic sauce!</h3><p>At this point you cannot select standard text files to open 😳 The Document class clearly says that is is able to read "public.text". But we need to make the complete class visible to the Objc runtime.</p><pre><code><div class="highlight"><span></span><span class="kr">@objc</span><span class="p">(</span><span class="n">Document</span><span class="p">)</span>
+<span class="kd">class</span> <span class="nc">Documnt</span><span class="p">:</span> <span class="n">NSDocument</span> <span class="p">{...}</span>
+</div></code></pre><p>Thanks to the guys at <a href="https://www.objc.io">objc.io</a> we now have a working text editor.</p><h3>Makefile</h3><p><a href="https://rderik.com">Derik Ramirez</a> provided me with a simple Makefile:</p><pre><code><div class="highlight"><span></span><span class="nv">SUPPORTFILES</span><span class="o">=</span>./SupportFiles
+<span class="nv">PLATFORM</span><span class="o">=</span>x86_64-apple-macosx
+<span class="nv">BUILD_DIRECTORY</span> <span class="o">=</span> ./.build/<span class="si">${</span><span class="nv">PLATFORM</span><span class="si">}</span>/debug
+<span class="nv">APP_DIRECTORY</span><span class="o">=</span>./Scratched.app
+<span class="nv">CFBUNDLEEXECUTABLE</span><span class="o">=</span>Scratched
+
+<span class="nf">install</span><span class="o">:</span> <span class="n">build</span> <span class="n">copySupportFiles</span>
+
+<span class="nf">build</span><span class="o">:</span>
+	swift build
+
+<span class="nf">copySupportFiles</span><span class="o">:</span>
+	mkdir -p <span class="si">${</span><span class="nv">APP_DIRECTORY</span><span class="si">}</span>/Contents/MacOS/ <span class="o">&amp;&amp;</span> <span class="se">\</span>
+	cp <span class="si">${</span><span class="nv">SUPPORTFILES</span><span class="si">}</span>/Info.plist <span class="si">${</span><span class="nv">APP_DIRECTORY</span><span class="si">}</span>/Contents <span class="o">&amp;&amp;</span> <span class="se">\</span>
+	cp <span class="si">${</span><span class="nv">BUILD_DIRECTORY</span><span class="si">}</span>/<span class="si">${</span><span class="nv">CFBUNDLEEXECUTABLE</span><span class="si">}</span> <span class="si">${</span><span class="nv">APP_DIRECTORY</span><span class="si">}</span>/Contents/MacOS/
+
+<span class="nf">run</span><span class="o">:</span> <span class="p">|</span> <span class="n">install</span>
+	open <span class="si">${</span><span class="nv">APP_DIRECTORY</span><span class="si">}</span>
+
+<span class="nf">clean</span><span class="o">:</span>
+	rm -rf .build
+	rm -rf <span class="si">${</span><span class="nv">APP_DIRECTORY</span><span class="si">}</span>
+
+<span class="nf">.PHONY</span><span class="o">:</span> <span class="n">run</span> <span class="n">build</span> <span class="n">copySupportFiles</span> <span class="n">clean</span>
+</div></code></pre><p>For this to work you need to create</p><pre><code><div class="highlight"><span></span>mkdir SupportFiles
+touch SupportFiles/Info.plist
+</div></code></pre><p>And add the following content:</p><pre><code><div class="highlight"><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="cp">&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;</span>
+<span class="nt">&lt;plist</span> <span class="na">version=</span><span class="s">&quot;1.0&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;dict</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/plist&gt;</span>
+</div></code></pre><p>Now you can run the app via</p><pre><code><div class="highlight"><span></span>make run
+</div></code></pre>]]></content:encoded></item><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-a-document-based-editor-with-xib-files-and-swifty-cocoa-bindings</guid><title>Create a document based editor with xib files and swifty cocoa bindings</title><description>How to create document based editor with xib files and Cocoa Bindings</description><link>https://oliver-epper.de/posts/create-a-document-based-editor-with-xib-files-and-swifty-cocoa-bindings</link><pubDate>Mon, 16 Nov 2020 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>While learning how to write really good Mac Apps I figured that I simply cannot rely on SwiftUI alone, just yet. SwiftUI is really cool but AppKit has so much to offer and SwiftUI still lacks a few bits and pieces on the Mac. If you're interested in building a document based app in SwiftUI, Gui Rambo has a nice article <a href="https://wwdcbysundell.com/2020/creating-document-based-apps-in-swiftui/">Creating document-based apps using SwiftUI</a>.</p><h2>Create the App</h2><p>While I do like to use Interface Builder sometimes I didn't want to use Storyboards, here. So let's start by creating a "Document App" and choose XIB for the interface type. If you run the app you should see something like this:</p><figure>
     <picture>
         <source srcset="/images/AppWindow-dark.png" media="(prefers-color-scheme: dark)">
         <img src="https://oliver-epper.de/images/AppWindow.png" alt="AppWindow">
