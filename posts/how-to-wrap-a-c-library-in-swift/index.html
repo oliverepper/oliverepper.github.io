@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="og:site_name" content="oliep"/><link rel="canonical" href="https://oliver-epper.de/posts/how-to-wrap-a-c-library-in-swift"/><meta name="twitter:url" content="https://oliver-epper.de/posts/how-to-wrap-a-c-library-in-swift"/><meta name="og:url" content="https://oliver-epper.de/posts/how-to-wrap-a-c-library-in-swift"/><title>How to wrap a C library in a swift package | oliep</title><meta name="twitter:title" content="How to wrap a C library in a swift package | oliep"/><meta name="og:title" content="How to wrap a C library in a swift package | oliep"/><meta name="description" content="How to wrap a c-library in a swift package"/><meta name="twitter:description" content="How to wrap a c-library in a swift package"/><meta name="og:description" content="How to wrap a c-library in a swift package"/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to oliep"/></head><body><div class="wrapper"><header><div class="container"><nav class="navigation"><a href="/">oliep</a><ul><li><a href="/posts">My posts</a></li><li><a href="https://golf.oliver-epper.de">Golf</a></li><li><a href="/about">About</a></li></ul></nav></div></header><main class="grow"><div class="container"><article><h1>How to wrap a C library in a swift package</h1><div class="item-metadata"><ul><li><span class="fas fa-calendar"></span>24. November 2020</li><li><span class="fas fa-clock"></span>3-minute read</li></ul><div class="taglist"><span class="fas fa-tags"></span><a href="/tags/swiftpm">SwiftPM</a></div></div><p>There are a few great C/C++ libraries out there that you might want to use in your Swift application. Most of the time you'll find a wrapper already, but not all of the times. Or maybe you want something that is carefully tailored to your project needs.</p><p>Chris Eidhof from <a href="https://www.objc.io">objc.io</a> has a wrapper around the cmark library: <a href="https://github.com/chriseidhof/commonmark-swift">CommonMark-Swift</a>. Let's take that as an example and see how this can be achieved.</p><h2>Create the library package</h2><pre><code><div class="highlight"><span></span>mkdir ~/CommonMark
+<span class="nb">cd</span> ~/CommonMark
+swift package init --type library
+</div></code></pre><p>Before we can actually use the cmark library it needs to be installed. I use brew:</p><pre><code><div class="highlight"><span></span>brew install cmark
+</div></code></pre><p>Now let's edit the Package.swift</p><pre><code><div class="highlight"><span></span><span class="c1">// swift-tools-version:5.3</span>
+<span class="kd">import</span> <span class="nc">PackageDescription</span>
+
+<span class="kd">let</span> <span class="nv">package</span> <span class="p">=</span> <span class="n">Package</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMark&quot;</span><span class="p">,</span>
+    <span class="n">platforms</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">macOS</span><span class="p">(</span><span class="s">&quot;11&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">products</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">library</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMark&quot;</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;CommonMark&quot;</span><span class="p">]),</span>
+        <span class="p">.</span><span class="n">library</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;Ccmark&quot;</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Ccmark&quot;</span><span class="p">])</span>
+    <span class="p">],</span>
+    <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">],</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">target</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMark&quot;</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;Ccmark&quot;</span>
+        <span class="p">]),</span>
+        <span class="p">.</span><span class="n">systemLibrary</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;Ccmark&quot;</span><span class="p">,</span>
+            <span class="n">pkgConfig</span><span class="p">:</span> <span class="s">&quot;libcmark&quot;</span><span class="p">,</span>
+            <span class="n">providers</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">.</span><span class="n">brew</span><span class="p">([</span><span class="s">&quot;commonmark&quot;</span><span class="p">])</span>
+            <span class="p">]),</span>
+        <span class="p">.</span><span class="n">testTarget</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMarkTests&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;CommonMark&quot;</span><span class="p">]),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</div></code></pre><p>So we're building two products:</p><ul><li>CommonMark</li><li>Ccmark</li></ul><p>In the target section you can see that Ccmark is the name that we'll use for libcmark. The leading uppercase C seems to be a standard.</p><p>For this to work we need to create a directory <code>Ccmark</code> below our <code>Sources</code>directory and create the file: <code>module.modulemap</code>with the following content:</p><pre><code><div class="highlight"><span></span><span class="n">module</span> <span class="n">Ccmark</span> <span class="p">[</span><span class="n">system</span><span class="p">]</span> <span class="p">{</span>
+    <span class="n">header</span> <span class="s">&quot;/usr/local/include/cmark.h&quot;</span>
+    <span class="n">link</span> <span class="s">&quot;libcmark&quot;</span>
+    <span class="n">export</span> <span class="o">*</span>
+<span class="p">}</span>
+</div></code></pre><p>This tells the system where to find the header for libcmark and the library itself. The <code>[system]</code> attribute tells the compiler that <code>cmark.h</code> is a system header and more warnings will be ignored.</p><p>Voila! That's it. We can now use the cmark library in our Swift code.</p><h2>Create a Swift API</h2><p>Chris created another target: <code>CommonMark</code>that gives the user a nicer API to work with. Let's build a minimal version of that.</p><p>Edit <code>Sources/CommonMark/CommonMark.swift</code> like this:</p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Foundation</span>
+<span class="kd">import</span> <span class="nc">Ccmark</span> <span class="c1">// this wraps libcmark</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Node</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nv">node</span><span class="p">:</span> <span class="n">OpaquePointer</span>
+
+    <span class="kd">public</span> <span class="kd">init</span><span class="p">(</span><span class="kc">_</span> <span class="n">node</span><span class="p">:</span> <span class="n">OpaquePointer</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">node</span> <span class="p">=</span> <span class="n">node</span>
+    <span class="p">}</span>
+    
+    <span class="kd">public</span> <span class="kd">init</span><span class="p">?(</span><span class="n">markdown</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="kd">let</span> <span class="nv">node</span> <span class="p">=</span> <span class="n">cmark_parse_document</span><span class="p">(</span><span class="n">markdown</span><span class="p">,</span> <span class="n">markdown</span><span class="p">.</span><span class="n">utf8</span><span class="p">.</span><span class="bp">count</span><span class="p">,</span> <span class="n">CMARK_OPT_DEFAULT</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="kc">nil</span>
+        <span class="p">}</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">node</span> <span class="p">=</span> <span class="n">node</span>
+    <span class="p">}</span>
+
+    <span class="kd">deinit</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="n">type</span> <span class="p">==</span> <span class="n">CMARK_NODE_DOCUMENT</span> <span class="k">else</span> <span class="p">{</span> <span class="k">return</span> <span class="p">}</span>
+        <span class="n">cmark_node_free</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">var</span> <span class="nv">type</span><span class="p">:</span> <span class="n">cmark_node_type</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">cmark_node_get_type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">var</span> <span class="nv">typeString</span><span class="p">:</span> <span class="nb">String</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nb">String</span><span class="p">(</span><span class="n">cString</span><span class="p">:</span> <span class="n">cmark_node_get_type_string</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">var</span> <span class="nv">children</span><span class="p">:</span> <span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nv">result</span><span class="p">:</span> <span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="p">=</span> <span class="p">[]</span>
+        
+      	<span class="c1">// cmark_node_first_child can return nil</span>
+        <span class="kd">var</span> <span class="nv">child</span> <span class="p">=</span> <span class="n">cmark_node_first_child</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kd">let</span> <span class="nv">unwrapped</span> <span class="p">=</span> <span class="n">child</span> <span class="p">{</span>
+            <span class="n">result</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">Node</span><span class="p">(</span><span class="n">unwrapped</span><span class="p">))</span>
+            <span class="n">child</span> <span class="p">=</span> <span class="n">cmark_node_next</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>This is pretty straight forward. The class Node encapsulates a pointer to the cmark node type. It gets initialized in the failable initializer through the call to the function <code>cmark_parse_document</code>. For this to work you need to import Ccmark.</p><blockquote><p>If you want to read the documentation for libcmark you can open the man-page with <code>man 3 cmark</code>. The <code>3</code> opens the library documentation as opposed to the implicit <code>1</code> which would open the cmark commands man page.</p></blockquote><p>This will not compile yet, because of the <code>testExample</code> test. Let's create a useful test:</p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">XCTest</span>
+<span class="p">@</span><span class="n">testable</span> <span class="kd">import</span> <span class="nc">CommonMark</span>
+
+<span class="kr">final</span> <span class="kd">class</span> <span class="nc">CommonMarkTests</span><span class="p">:</span> <span class="n">XCTestCase</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">testCaption</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nv">markdown</span> <span class="p">=</span> <span class="s">&quot;# Caption&quot;</span>
+        <span class="kd">let</span> <span class="nv">node</span> <span class="p">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">markdown</span><span class="p">:</span> <span class="n">markdown</span><span class="p">)</span><span class="o">!</span>
+        <span class="kd">let</span> <span class="nv">heading</span> <span class="p">=</span> <span class="n">node</span><span class="p">.</span><span class="n">children</span><span class="p">.</span><span class="bp">first</span>
+        <span class="n">XCTAssertEqual</span><span class="p">(</span><span class="n">heading</span><span class="p">?.</span><span class="n">typeString</span><span class="p">,</span> <span class="s">&quot;heading&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>

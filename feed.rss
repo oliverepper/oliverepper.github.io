@@ -1,4 +1,95 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Fri, 20 Nov 2020 16:32:33 +0100</lastBuildDate><pubDate>Fri, 20 Nov 2020 16:32:33 +0100</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-a-document-based-editor-from-scratch-as-a-swift-package</guid><title>Create a document based editor from scratch as a swift package</title><description>How to create document based editor without Xcode templates, Storyboards and XIBs</description><link>https://oliver-epper.de/posts/create-a-document-based-editor-from-scratch-as-a-swift-package</link><pubDate>Thu, 19 Nov 2020 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>I thought I had most of the information for this ready from either <a href="https://rderik.com/blog/understanding-a-few-concepts-of-macos-applications-by-building-an-agent-based-menu-bar-app/">Derik Ramirez's</a> great blog or the great article <a href="https://medium.com/@theboi/creating-macos-apps-without-a-storyboard-or-xib-file-516115ee9d26">Creating macOS apps without a storyboard or .xib file with Swift 5</a> from Ryan Theodore The. But I ran into some real hard to figure out pices that where all answered by the great guys from <a href="https://www.objc.io">objc.io</a> — I am a happy subscriber 😀</p><h2>Create a Hello World App</h2><pre><code><div class="highlight"><span></span>mkdir ~/Desktop/Scratched
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Tue, 24 Nov 2020 22:09:22 +0100</lastBuildDate><pubDate>Tue, 24 Nov 2020 22:09:22 +0100</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/how-to-wrap-a-c-library-in-swift</guid><title>How to wrap a C library in a swift package</title><description>How to wrap a c-library in a swift package</description><link>https://oliver-epper.de/posts/how-to-wrap-a-c-library-in-swift</link><pubDate>Tue, 24 Nov 2020 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>There are a few great C/C++ libraries out there that you might want to use in your Swift application. Most of the time you'll find a wrapper already, but not all of the times. Or maybe you want something that is carefully tailored to your project needs.</p><p>Chris Eidhof from <a href="https://www.objc.io">objc.io</a> has a wrapper around the cmark library: <a href="https://github.com/chriseidhof/commonmark-swift">CommonMark-Swift</a>. Let's take that as an example and see how this can be achieved.</p><h2>Create the library package</h2><pre><code><div class="highlight"><span></span>mkdir ~/CommonMark
+<span class="nb">cd</span> ~/CommonMark
+swift package init --type library
+</div></code></pre><p>Before we can actually use the cmark library it needs to be installed. I use brew:</p><pre><code><div class="highlight"><span></span>brew install cmark
+</div></code></pre><p>Now let's edit the Package.swift</p><pre><code><div class="highlight"><span></span><span class="c1">// swift-tools-version:5.3</span>
+<span class="kd">import</span> <span class="nc">PackageDescription</span>
+
+<span class="kd">let</span> <span class="nv">package</span> <span class="p">=</span> <span class="n">Package</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMark&quot;</span><span class="p">,</span>
+    <span class="n">platforms</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">macOS</span><span class="p">(</span><span class="s">&quot;11&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">products</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">library</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMark&quot;</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;CommonMark&quot;</span><span class="p">]),</span>
+        <span class="p">.</span><span class="n">library</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;Ccmark&quot;</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Ccmark&quot;</span><span class="p">])</span>
+    <span class="p">],</span>
+    <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">],</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">target</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMark&quot;</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;Ccmark&quot;</span>
+        <span class="p">]),</span>
+        <span class="p">.</span><span class="n">systemLibrary</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;Ccmark&quot;</span><span class="p">,</span>
+            <span class="n">pkgConfig</span><span class="p">:</span> <span class="s">&quot;libcmark&quot;</span><span class="p">,</span>
+            <span class="n">providers</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">.</span><span class="n">brew</span><span class="p">([</span><span class="s">&quot;commonmark&quot;</span><span class="p">])</span>
+            <span class="p">]),</span>
+        <span class="p">.</span><span class="n">testTarget</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;CommonMarkTests&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;CommonMark&quot;</span><span class="p">]),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</div></code></pre><p>So we're building two products:</p><ul><li>CommonMark</li><li>Ccmark</li></ul><p>In the target section you can see that Ccmark is the name that we'll use for libcmark. The leading uppercase C seems to be a standard.</p><p>For this to work we need to create a directory <code>Ccmark</code> below our <code>Sources</code>directory and create the file: <code>module.modulemap</code>with the following content:</p><pre><code><div class="highlight"><span></span><span class="n">module</span> <span class="n">Ccmark</span> <span class="p">[</span><span class="n">system</span><span class="p">]</span> <span class="p">{</span>
+    <span class="n">header</span> <span class="s">&quot;/usr/local/include/cmark.h&quot;</span>
+    <span class="n">link</span> <span class="s">&quot;libcmark&quot;</span>
+    <span class="n">export</span> <span class="o">*</span>
+<span class="p">}</span>
+</div></code></pre><p>This tells the system where to find the header for libcmark and the library itself. The <code>[system]</code> attribute tells the compiler that <code>cmark.h</code> is a system header and more warnings will be ignored.</p><p>Voila! That's it. We can now use the cmark library in our Swift code.</p><h2>Create a Swift API</h2><p>Chris created another target: <code>CommonMark</code>that gives the user a nicer API to work with. Let's build a minimal version of that.</p><p>Edit <code>Sources/CommonMark/CommonMark.swift</code> like this:</p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">Foundation</span>
+<span class="kd">import</span> <span class="nc">Ccmark</span> <span class="c1">// this wraps libcmark</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Node</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nv">node</span><span class="p">:</span> <span class="n">OpaquePointer</span>
+
+    <span class="kd">public</span> <span class="kd">init</span><span class="p">(</span><span class="kc">_</span> <span class="n">node</span><span class="p">:</span> <span class="n">OpaquePointer</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">node</span> <span class="p">=</span> <span class="n">node</span>
+    <span class="p">}</span>
+    
+    <span class="kd">public</span> <span class="kd">init</span><span class="p">?(</span><span class="n">markdown</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="kd">let</span> <span class="nv">node</span> <span class="p">=</span> <span class="n">cmark_parse_document</span><span class="p">(</span><span class="n">markdown</span><span class="p">,</span> <span class="n">markdown</span><span class="p">.</span><span class="n">utf8</span><span class="p">.</span><span class="bp">count</span><span class="p">,</span> <span class="n">CMARK_OPT_DEFAULT</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="kc">nil</span>
+        <span class="p">}</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">node</span> <span class="p">=</span> <span class="n">node</span>
+    <span class="p">}</span>
+
+    <span class="kd">deinit</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="n">type</span> <span class="p">==</span> <span class="n">CMARK_NODE_DOCUMENT</span> <span class="k">else</span> <span class="p">{</span> <span class="k">return</span> <span class="p">}</span>
+        <span class="n">cmark_node_free</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">var</span> <span class="nv">type</span><span class="p">:</span> <span class="n">cmark_node_type</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">cmark_node_get_type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">var</span> <span class="nv">typeString</span><span class="p">:</span> <span class="nb">String</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nb">String</span><span class="p">(</span><span class="n">cString</span><span class="p">:</span> <span class="n">cmark_node_get_type_string</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">public</span> <span class="kd">var</span> <span class="nv">children</span><span class="p">:</span> <span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nv">result</span><span class="p">:</span> <span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="p">=</span> <span class="p">[]</span>
+        
+      	<span class="c1">// cmark_node_first_child can return nil</span>
+        <span class="kd">var</span> <span class="nv">child</span> <span class="p">=</span> <span class="n">cmark_node_first_child</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kd">let</span> <span class="nv">unwrapped</span> <span class="p">=</span> <span class="n">child</span> <span class="p">{</span>
+            <span class="n">result</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">Node</span><span class="p">(</span><span class="n">unwrapped</span><span class="p">))</span>
+            <span class="n">child</span> <span class="p">=</span> <span class="n">cmark_node_next</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>This is pretty straight forward. The class Node encapsulates a pointer to the cmark node type. It gets initialized in the failable initializer through the call to the function <code>cmark_parse_document</code>. For this to work you need to import Ccmark.</p><blockquote><p>If you want to read the documentation for libcmark you can open the man-page with <code>man 3 cmark</code>. The <code>3</code> opens the library documentation as opposed to the implicit <code>1</code> which would open the cmark commands man page.</p></blockquote><p>This will not compile yet, because of the <code>testExample</code> test. Let's create a useful test:</p><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">XCTest</span>
+<span class="p">@</span><span class="n">testable</span> <span class="kd">import</span> <span class="nc">CommonMark</span>
+
+<span class="kr">final</span> <span class="kd">class</span> <span class="nc">CommonMarkTests</span><span class="p">:</span> <span class="n">XCTestCase</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">testCaption</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nv">markdown</span> <span class="p">=</span> <span class="s">&quot;# Caption&quot;</span>
+        <span class="kd">let</span> <span class="nv">node</span> <span class="p">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">markdown</span><span class="p">:</span> <span class="n">markdown</span><span class="p">)</span><span class="o">!</span>
+        <span class="kd">let</span> <span class="nv">heading</span> <span class="p">=</span> <span class="n">node</span><span class="p">.</span><span class="n">children</span><span class="p">.</span><span class="bp">first</span>
+        <span class="n">XCTAssertEqual</span><span class="p">(</span><span class="n">heading</span><span class="p">?.</span><span class="n">typeString</span><span class="p">,</span> <span class="s">&quot;heading&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre>]]></content:encoded></item><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-a-document-based-editor-from-scratch-as-a-swift-package</guid><title>Create a document based editor from scratch as a swift package</title><description>How to create document based editor without Xcode templates, Storyboards and XIBs</description><link>https://oliver-epper.de/posts/create-a-document-based-editor-from-scratch-as-a-swift-package</link><pubDate>Thu, 19 Nov 2020 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>I thought I had most of the information for this ready from either <a href="https://rderik.com/blog/understanding-a-few-concepts-of-macos-applications-by-building-an-agent-based-menu-bar-app/">Derik Ramirez's</a> great blog or the great article <a href="https://medium.com/@theboi/creating-macos-apps-without-a-storyboard-or-xib-file-516115ee9d26">Creating macOS apps without a storyboard or .xib file with Swift 5</a> from Ryan Theodore The. But I ran into some real hard to figure out pices that where all answered by the great guys from <a href="https://www.objc.io">objc.io</a> — I am a happy subscriber 😀</p><h2>Create a Hello World App</h2><pre><code><div class="highlight"><span></span>mkdir ~/Desktop/Scratched
 <span class="nb">cd</span> ~/Desktop/Scratched
 swift package init --type executable
 xed .
