@@ -129,7 +129,7 @@ make
             -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
             -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
             -B out/os64
-</div></code></pre><p>If that step fails, please run it again. For <a href="https://github.com/leetal/ios-cmake/issues/110">reasons</a> that I haven't understand yet this fails on the first run but works on the second run for me and others.</p><p>and run the build process with:</p><pre><code><div class="highlight"><span></span><span class="err">cmake</span> <span class="err">--build</span> <span class="err">./out/os64</span> <span class="err">--config</span> <span class="err">RelWithDebInfo</span>
+</div></code></pre><p>If that step fails, please run it again. For <a href="https://github.com/leetal/ios-cmake/issues/110">reasons</a> that I haven't understand yet this fails on the first run but works on the second run for me and others.</p><p>and run the build process with:</p><pre><code><div class="highlight"><span></span>cmake --build ./out/os64 --config RelWithDebInfo
 </div></code></pre><p>My complete build script looks like this:</p><pre><code><div class="highlight"><span></span><span class="ch">#!/bin/sh</span>
 
 <span class="c1"># iOS &amp; simulator running on arm64 &amp; x86_64</span>
