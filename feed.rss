@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Wed, 7 Jul 2021 09:43:53 +0200</lastBuildDate><pubDate>Wed, 7 Jul 2021 09:43:53 +0200</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1</guid><title>Swift and C++ interoperability with gRPC part 1</title><description>Let's (mis-)use gRPC to create Swift and C++ interoperability</description><link>https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1</link><pubDate>Thu, 1 Jul 2021 09:41:00 +0200</pubDate><content:encoded><![CDATA[<h2>Prolog</h2><p>This is going to be fun. I will show you how you can embed a gRPC server written in C++ in a Swift programm that you can run on a Mac or an iPhone. I'll use another gRPC server written in Swift so that not only the Swift part can call into C++ via gRPC but the C++ part can call into Swift via gRPC as well – all in the same process, of course :-D</p><h2>But why?</h2><p>Well first it's <strong>fun</strong>, second you can learn a few things along the way and third: Given the right situation and constraints this can be a great idea!</p><h2>Warning</h2><p>There're definitely a few other – more straight forward ways – of doing Swift/C++ interoperability; not all great though and with different trade offs. If you read through the end you know enough to decide wether or not this is for you.</p><p><em>I do want to mention that Swift is – by far – the coolest programming language that I've came across and that it runs on Darwin, Linux and Windows and that you should really revistit your life choices if you manouvered yourself in the corner googleing for an article like this ;)</em></p><h2>Start easy - create a demo library</h2><p>Let's first create a little library in C++ that uses some random dependencies and cross-compile that for iPhone, iPhone simulators and the Mac running on Intel or Apple-Silicon. To enable multi-architectures we'll use fat-libs and to enable multi-platform support we'll stuff these fat-libs into a xcframework. All will be done via CMake, the <a href="https://github.com/leetal/ios-cmake">ios-cmake</a> toolchain and a small shell script.</p><h3>chukle library</h3><p>Start by creating a directory and a few files:</p><pre><code><div class="highlight"><span></span>mkdir chuckle <span class="o">&amp;&amp;</span>
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Wed, 7 Jul 2021 09:57:58 +0200</lastBuildDate><pubDate>Wed, 7 Jul 2021 09:57:58 +0200</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1</guid><title>Swift and C++ interoperability with gRPC part 1</title><description>Let's (mis-)use gRPC to create Swift and C++ interoperability</description><link>https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1</link><pubDate>Thu, 1 Jul 2021 09:41:00 +0200</pubDate><content:encoded><![CDATA[<h2>Prolog</h2><p>This is going to be fun. I will show you how you can embed a gRPC server written in C++ in a Swift programm that you can run on a Mac or an iPhone. I'll use another gRPC server written in Swift so that not only the Swift part can call into C++ via gRPC but the C++ part can call into Swift via gRPC as well – all in the same process, of course :-D</p><h2>But why?</h2><p>Well first it's <strong>fun</strong>, second you can learn a few things along the way and third: Given the right situation and constraints this can be a great idea!</p><h2>Warning</h2><p>There're definitely a few other – more straight forward ways – of doing Swift/C++ interoperability; not all great though and with different trade offs. If you read through the end you know enough to decide wether or not this is for you.</p><p><em>I do want to mention that Swift is – by far – the coolest programming language that I've came across and that it runs on Darwin, Linux and Windows and that you should really revistit your life choices if you manouvered yourself in the corner googleing for an article like this ;)</em></p><h2>Start easy - create a demo library</h2><p>Let's first create a little library in C++ that uses some random dependencies and cross-compile that for iPhone, iPhone simulators and the Mac running on Intel or Apple-Silicon. To enable multi-architectures we'll use fat-libs and to enable multi-platform support we'll stuff these fat-libs into a xcframework. All will be done via CMake, the <a href="https://github.com/leetal/ios-cmake">ios-cmake</a> toolchain and a small shell script.</p><h3>chukle library</h3><p>Start by creating a directory and a few files:</p><pre><code><div class="highlight"><span></span>mkdir chuckle <span class="o">&amp;&amp;</span>
 touch chuckle/<span class="o">{</span>chuckle.cpp,chuckle.h,Cli.cpp,CMakeLists.txt<span class="o">}</span>
 </div></code></pre><p>And add the following content:</p><h4>chuckle.h</h4><pre><code><div class="highlight"><span></span><span class="cp">#ifndef CHUCKLE_CHUCKLE_H</span>
 <span class="cp">#define CHUCKLE_CHUCKLE_H</span>
@@ -203,7 +203,102 @@ cp include/chuckle/chuckle.h libchuckle.xcframework/Headers
 <span class="c1"># copy xcframework into Swift package</span>
 mkdir -p ChuckleWrapper/lib
 cp -a libchuckle.xcframework ChuckleWrapper/lib
-</div></code></pre><p><strong>CAUTION:</strong> I changed a few locations. You can find the project here: <a href="https://github.com/oliverepper/chuckle">chuckle</a></p><p>Now we got a xframework that we can depend on in a Swift package that can carry an ObjC++-Wrapper to call into out code.</p>]]></content:encoded></item><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-and-use-a-c++-library-on-the-mac</guid><title>Create and use a C++ library on the Mac</title><description>How to create and use a dylib in C++ on the Mac</description><link>https://oliver-epper.de/posts/create-and-use-a-c++-library-on-the-mac</link><pubDate>Sat, 27 Mar 2021 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>This took a little while to figure out. It is a lot of code to write for a simple hello world program, but I learned a few things about macOS along the way.</p><h2>Create the library</h2><p>Let's start by creating a hello world library in C++.</p><pre><code><div class="highlight"><span></span>mkdir -p HelloLib/<span class="o">{</span>src,build<span class="o">}</span> <span class="o">&amp;&amp;</span>
+</div></code></pre><p><strong>CAUTION:</strong> I changed a few locations. You can find the project here: <a href="https://github.com/oliverepper/chuckle">chuckle</a></p><p>Now we got a xframework that we can depend on in a Swift package that can carry an ObjC++-Wrapper to call into out code.</p><h2>Build the Swift package</h2><p>If you checked out the repository you already saw how to setup the swift package. Create a subdirectory <code>ChuckleWrapper</code> and run this from within:</p><pre><code><div class="highlight"><span></span>swift package init
+</div></code></pre><p>Basically we need this Swift file:</p><pre><code><div class="highlight"><span></span><span class="p">@</span><span class="n">_exported</span> <span class="kd">import</span> <span class="nc">ObjC</span>
+</div></code></pre><p>That will depend on the <code>ObjC</code> target that has the following files:</p><h4>ObjC/include/ChuckleWrapper.h</h4><pre><code><div class="highlight"><span></span><span class="cp">#ifndef ChuckleWrapper_h</span>
+<span class="cp">#define ChuckleWrapper_h</span>
+
+<span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
+
+<span class="k">@interface</span> <span class="nc">ChuckleWrapper</span> : <span class="bp">NSObject</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="p">;</span>
+
+<span class="k">@end</span>
+
+<span class="cp">#endif </span><span class="cm">/* ChuckleWrapper_h */</span><span class="cp"></span>
+</div></code></pre><p>and it's implementation</p><h4>ObjC/ChuckleWrapper.mm</h4><pre><code><div class="highlight"><span></span><span class="cp">#import &quot;ChuckleWrapper.h&quot;</span>
+<span class="cp">#include</span> <span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
+
+<span class="k">@implementation</span> <span class="nc">ChuckleWrapper</span>
+
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">joke</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithCString</span><span class="p">:</span><span class="n">joke</span><span class="p">().</span><span class="n">c_str</span><span class="p">()</span> <span class="nl">encoding</span><span class="p">:[</span><span class="bp">NSString</span> <span class="n">defaultCStringEncoding</span><span class="p">]];</span>
+<span class="p">}</span>
+
+<span class="k">@end</span>
+</div></code></pre><p>Here we can include <code>chuckle.h</code> because we copied the header file into our xcframework and let the <code>ObjC</code> target depend on that via</p><h4>Package.swift</h4><pre><code><div class="highlight"><span></span><span class="c1">// swift-tools-version:5.3</span>
+<span class="kd">import</span> <span class="nc">PackageDescription</span>
+
+<span class="kd">let</span> <span class="nv">package</span> <span class="p">=</span> <span class="n">Package</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&quot;ChuckleWrapper&quot;</span><span class="p">,</span>
+    <span class="n">platforms</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">iOS</span><span class="p">(.</span><span class="n">v14</span><span class="p">),</span>
+        <span class="p">.</span><span class="n">macOS</span><span class="p">(.</span><span class="n">v11</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">products</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">library</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;ChuckleWrapper&quot;</span><span class="p">,</span>
+            <span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&quot;libchuckle&quot;</span><span class="p">,</span>
+                <span class="s">&quot;ObjC&quot;</span><span class="p">,</span>
+                <span class="s">&quot;ChuckleWrapper&quot;</span>
+            <span class="p">]),</span>
+    <span class="p">],</span>
+    <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">],</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+        <span class="c1">// lib</span>
+        <span class="p">.</span><span class="n">binaryTarget</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;libchuckle&quot;</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">:</span> <span class="s">&quot;lib/libchuckle.xcframework&quot;</span>
+        <span class="p">),</span>
+
+        <span class="c1">// ObjC++ Wrapper</span>
+        <span class="p">.</span><span class="n">target</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;ObjC&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&quot;libchuckle&quot;</span>
+            <span class="p">],</span>
+            <span class="n">path</span><span class="p">:</span> <span class="s">&quot;Sources/ObjC&quot;</span><span class="p">,</span>
+            <span class="n">cxxSettings</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">.</span><span class="n">headerSearchPath</span><span class="p">(</span><span class="s">&quot;../../lib/libchuckle.xcframework/Headers&quot;</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+
+        <span class="p">.</span><span class="n">target</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;ChuckleWrapper&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s">&quot;ObjC&quot;</span>
+            <span class="p">],</span>
+            <span class="n">path</span><span class="p">:</span> <span class="s">&quot;Sources/Swift&quot;</span>
+        <span class="p">),</span>
+
+        <span class="p">.</span><span class="n">testTarget</span><span class="p">(</span>
+            <span class="n">name</span><span class="p">:</span> <span class="s">&quot;ChuckleWrapperTests&quot;</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;ChuckleWrapper&quot;</span><span class="p">]),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</div></code></pre><p>The path to the header files is configured via <code>cxxSettings</code> in the <code>ObjC</code> target.</p><p>Let's test the package</p><h4>ChuckleWrapperTests.swift</h4><pre><code><div class="highlight"><span></span><span class="kd">import</span> <span class="nc">XCTest</span>
+<span class="p">@</span><span class="n">testable</span> <span class="kd">import</span> <span class="nc">ChuckleWrapper</span>
+
+<span class="kr">final</span> <span class="kd">class</span> <span class="nc">ChuckleWrapperTests</span><span class="p">:</span> <span class="n">XCTestCase</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">testJoke</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">guard</span> <span class="kd">let</span> <span class="nv">joke</span> <span class="p">=</span> <span class="n">ChuckleWrapper</span><span class="p">.</span><span class="n">joke</span><span class="p">()</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="n">XCTFail</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="p">}</span>
+        <span class="bp">print</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">            ---</span>
+<span class="s">            </span><span class="si">\(</span><span class="n">joke</span><span class="si">)</span><span class="s"></span>
+<span class="s">            ---</span>
+<span class="s">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">XCTAssertFalse</span><span class="p">(</span><span class="n">joke</span><span class="p">.</span><span class="bp">isEmpty</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p><strong>CAUTION:</strong> Xcode has a really hard time with such a package. If Xcode refuses to compile the package you can either try to compile &amp; run tests form the terminal:</p><pre><code><div class="highlight"><span></span>swift build <span class="o">&amp;&amp;</span> swift <span class="nb">test</span>
+</div></code></pre><p>Or it can help to delete <code>.swiftpm</code></p>]]></content:encoded></item><item><guid isPermaLink="true">https://oliver-epper.de/posts/create-and-use-a-c++-library-on-the-mac</guid><title>Create and use a C++ library on the Mac</title><description>How to create and use a dylib in C++ on the Mac</description><link>https://oliver-epper.de/posts/create-and-use-a-c++-library-on-the-mac</link><pubDate>Sat, 27 Mar 2021 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>This took a little while to figure out. It is a lot of code to write for a simple hello world program, but I learned a few things about macOS along the way.</p><h2>Create the library</h2><p>Let's start by creating a hello world library in C++.</p><pre><code><div class="highlight"><span></span>mkdir -p HelloLib/<span class="o">{</span>src,build<span class="o">}</span> <span class="o">&amp;&amp;</span>
 touch HelloLib/src/<span class="o">{</span>HelloService.hpp,HelloService.cpp<span class="o">}</span> <span class="o">&amp;&amp;</span>
 touch HelloLib/CMakeLists.txt
 </div></code></pre><p>While we're in the shell let's create the target directory for our library, too:</p><pre><code><div class="highlight"><span></span>sudo mkdir /opt/hello <span class="o">&amp;&amp;</span>
