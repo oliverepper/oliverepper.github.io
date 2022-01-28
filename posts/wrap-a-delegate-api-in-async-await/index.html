@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="og:site_name" content="oliep"/><link rel="canonical" href="https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await"/><meta name="twitter:url" content="https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await"/><meta name="og:url" content="https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await"/><title>Wrap a delegate API in async/await | oliep</title><meta name="twitter:title" content="Wrap a delegate API in async/await | oliep"/><meta name="og:title" content="Wrap a delegate API in async/await | oliep"/><meta name="description" content="How to use an existing delegate API with the new Swift concurrency system"/><meta name="twitter:description" content="How to use an existing delegate API with the new Swift concurrency system"/><meta name="og:description" content="How to use an existing delegate API with the new Swift concurrency system"/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to oliep"/></head><body><div class="wrapper"><header><div class="container"><nav class="navigation"><a href="/">oliep</a><ul><li><a href="/posts">Posts</a></li><li><a href="/apps">Apps</a></li><li><a href="https://golf.oliver-epper.de">Golf</a></li><li><a href="/about">About</a></li></ul></nav></div></header><main class="grow"><div class="container"><article><h1>Wrap a delegate API in async/await</h1><div class="item-metadata"><ul><li><span class="fas fa-calendar"></span>28. Januar 2022</li><li><span class="fas fa-clock"></span>2-minute read</li></ul><div class="taglist"><span class="fas fa-tags"></span><a href="/tags/swift">Swift</a>&middot;<a href="/tags/async">async</a>&middot;<a href="/tags/delegate">delegate</a></div></div><p>The new Swift concurrency system looks super promising in terms of cleaner and easier to reason about code in a complex application. As with SwiftUI and AppKit/UIKit there's an opportunity to wrap existing APIs and make them availabe via the new APIs.</p><h2>Create a delegate based sample API</h2><p>Although <code>URLSession</code> already has an async/await API we use it to build a super simple delegate based API.</p><pre><code><div class="highlight"><span></span><span class="kd">protocol</span> <span class="nc">DownloaderDelegate</span><span class="p">:</span> <span class="nb">AnyObject</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFinishDownloadingData</span> <span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFailWithError</span> <span class="n">error</span><span class="p">:</span> <span class="n">Error</span><span class="p">)</span>
+    <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFailWithHttpStatusCode</span> <span class="n">code</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span>
+<span class="p">}</span>
+</div></code></pre><pre><code><div class="highlight"><span></span><span class="kd">struct</span> <span class="nc">Downloader</span> <span class="p">{</span>
+    <span class="kr">weak</span> <span class="kd">var</span> <span class="nv">delegate</span><span class="p">:</span> <span class="n">DownloaderDelegate</span><span class="p">?</span>
+
+    <span class="kd">func</span> <span class="nf">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">URL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">URLSession</span><span class="p">.</span><span class="n">shared</span><span class="p">.</span><span class="n">dataTask</span><span class="p">(</span><span class="n">with</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span> <span class="p">{</span> <span class="n">data</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">error</span> <span class="k">in</span>
+            <span class="k">if</span> <span class="kd">let</span> <span class="nv">error</span> <span class="p">=</span> <span class="n">error</span> <span class="p">{</span>
+                <span class="n">delegate</span><span class="p">?.</span><span class="n">downloader</span><span class="p">(</span><span class="kc">self</span><span class="p">,</span> <span class="n">didFailWithError</span><span class="p">:</span> <span class="n">error</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="p">}</span>
+
+            <span class="k">guard</span> <span class="kd">let</span> <span class="nv">statusCode</span> <span class="p">=</span> <span class="p">(</span><span class="n">response</span> <span class="k">as</span><span class="p">?</span> <span class="n">HTTPURLResponse</span><span class="p">)?.</span><span class="n">statusCode</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="bp">fatalError</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="k">guard</span> <span class="n">statusCode</span> <span class="p">==</span> <span class="mi">200</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">delegate</span><span class="p">?.</span><span class="n">downloader</span><span class="p">(</span><span class="kc">self</span><span class="p">,</span> <span class="n">didFailWithHttpStatusCode</span><span class="p">:</span> <span class="n">statusCode</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="p">}</span>
+
+            <span class="k">guard</span> <span class="kd">let</span> <span class="nv">data</span> <span class="p">=</span> <span class="n">data</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="bp">fatalError</span><span class="p">()</span>
+            <span class="p">}</span>
+
+            <span class="n">delegate</span><span class="p">?.</span><span class="n">downloader</span><span class="p">(</span><span class="kc">self</span><span class="p">,</span> <span class="n">didFinishDownloadingData</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
+        <span class="p">}.</span><span class="n">resume</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>This API is pretty simple you call <code>Downloader().download(url:)</code> and you get either your data, or an error via the delegate protocol.</p><h2>Async/Await</h2><p>What we would like to achieve is the following: <code>DownloaderWrapper().download(url:)</code> which would be an async throwing function that returns either <code>Data</code> or throws an <code>error</code>. So lets sketch that out:</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">URL</span><span class="p">)</span> <span class="n">async</span> <span class="kr">throws</span> <span class="p">-&gt;</span> <span class="n">Data</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">...</span>
+<span class="p">}</span>
+</div></code></pre><p>Form the delegate functions we need to comminucate back to the thing that we want to return. Roughly like with Futures and Promises. In the new Swift concurrency system that thing is a <code>Continuation</code>.</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">URL</span><span class="p">)</span> <span class="n">async</span> <span class="kr">throws</span> <span class="p">-&gt;</span> <span class="n">Data</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">try</span> <span class="n">await</span> <span class="n">withCheckedThrowingContinuation</span> <span class="p">{</span>
+        <span class="n">download</span> <span class="p">=</span> <span class="nv">$0</span> <span class="c1">// save the continuation to be fullfilled by the delegate functions</span>
+        <span class="n">downloader</span><span class="p">.</span><span class="n">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span> <span class="c1">// initialize the download via the original API</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>So the complete Wrapper looks like this:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">DownloaderWrapper</span><span class="p">:</span> <span class="n">DownloaderDelegate</span> <span class="p">{</span>
+    <span class="kd">enum</span> <span class="nc">HTTPError</span><span class="p">:</span> <span class="n">Error</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="n">code</span><span class="p">(</span><span class="nb">Int</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">typealias</span> <span class="n">DownloadContinuation</span> <span class="p">=</span> <span class="n">CheckedContinuation</span><span class="p">&lt;</span><span class="n">Data</span><span class="p">,</span> <span class="n">Error</span><span class="p">&gt;</span>
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">download</span><span class="p">:</span> <span class="n">DownloadContinuation</span><span class="p">?</span>
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">downloader</span><span class="p">:</span> <span class="n">Downloader</span>
+
+    <span class="kd">init</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">downloader</span> <span class="p">=</span> <span class="n">Downloader</span><span class="p">()</span>
+        <span class="n">downloader</span><span class="p">.</span><span class="n">delegate</span> <span class="p">=</span> <span class="kc">self</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFinishDownloadingData</span> <span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">download</span><span class="p">?.</span><span class="n">resume</span><span class="p">(</span><span class="n">with</span><span class="p">:</span> <span class="p">.</span><span class="n">success</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFailWithError</span> <span class="n">error</span><span class="p">:</span> <span class="n">Error</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">download</span><span class="p">?.</span><span class="n">resume</span><span class="p">(</span><span class="n">with</span><span class="p">:</span> <span class="p">.</span><span class="n">failure</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFailWithHttpStatusCode</span> <span class="n">code</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">download</span><span class="p">?.</span><span class="n">resume</span><span class="p">(</span><span class="n">with</span><span class="p">:</span> <span class="p">.</span><span class="n">failure</span><span class="p">(</span><span class="n">HTTPError</span><span class="p">.</span><span class="n">code</span><span class="p">(</span><span class="n">code</span><span class="p">)))</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">URL</span><span class="p">)</span> <span class="n">async</span> <span class="kr">throws</span> <span class="p">-&gt;</span> <span class="n">Data</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="k">try</span> <span class="n">await</span> <span class="n">withCheckedThrowingContinuation</span> <span class="p">{</span>
+            <span class="n">download</span> <span class="p">=</span> <span class="nv">$0</span>
+            <span class="n">downloader</span><span class="p">.</span><span class="n">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">url</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><h2>Using the new API</h2><p>So inside a view you can now use the new API in an asynchronous context via a Task</p><pre><code><div class="highlight"><span></span><span class="n">Button</span><span class="p">(</span><span class="s">&quot;Download&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Task</span> <span class="p">{</span>
+        <span class="k">do</span> <span class="p">{</span>
+            <span class="kd">let</span> <span class="nv">data</span> <span class="p">=</span> <span class="k">try</span> <span class="n">await</span> <span class="n">DownloaderWrapper</span><span class="p">().</span><span class="n">download</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="n">URL</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="s">&quot;https://oliver-epper.de&quot;</span><span class="p">)</span><span class="o">!</span><span class="p">)</span>
+            <span class="n">text</span> <span class="p">=</span> <span class="nb">String</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="p">.</span><span class="n">utf8</span><span class="p">)</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="k">case</span> <span class="kd">let</span> <span class="nv">DownloaderWrapper</span><span class="p">.</span><span class="n">HTTPError</span><span class="p">.</span><span class="n">code</span><span class="p">(</span><span class="n">code</span><span class="p">)</span> <span class="p">=</span> <span class="n">error</span> <span class="p">{</span>
+                <span class="n">errorMessage</span> <span class="p">=</span> <span class="s">&quot;HTTP Error: </span><span class="si">\(</span><span class="n">code</span><span class="si">)</span><span class="s">&quot;</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="n">errorMessage</span> <span class="p">=</span> <span class="n">error</span><span class="p">.</span><span class="n">localizedDescription</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Very cool! Thanks <a href="https://twitter.com/ludwigmatthias">Matz</a> and Andy Inbanez <a href="https://www.andyibanez.com/posts/converting-closure-based-code-into-async-await-in-swift/">async/await in Swift</a></p></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>
