@@ -113,13 +113,7 @@
         <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span> <span class="c1">// not done, yet</span>
     <span class="p">}</span>
 <span class="p">}</span>
-</div></code></pre><p>Do the same for <code>decrement(times:)</code> and you'll get to the next error:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from a non-isolated context.</code></p></blockquote><p>Fix this with annotating the <code>update()</code>-function with <code>@MainActor</code>.</p><p>Now the error changes to:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from the main actor.</code></p></blockquote><p>which can be fixed by wrapping the body in a <code>Task</code>. The compiler will tell you that you need to await <code>counter.value.description</code> now, so do that.</p><pre><code><div class="highlight"><span></span><span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
-    <span class="bp">assert</span><span class="p">(</span><span class="n">Thread</span><span class="p">.</span><span class="n">isMainThread</span><span class="p">)</span>
-    <span class="n">Task</span> <span class="p">{</span>
-        <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</div></code></pre><p>Do the same for the two calls to the update function inside <code>increment(times:)</code> and <code>decrement(times:)</code> and inside <code>init()</code>. Here's the updated view model:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">Model</span><span class="p">:</span> <span class="n">ObservableObject</span> <span class="p">{</span>
+</div></code></pre><p>Do the same for <code>decrement(times:)</code> and you'll get to the next error:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from a non-isolated context.</code></p></blockquote><p>Fix this with annotating the <code>update()</code>-function with <code>@MainActor</code> and making it async.</p><p>Finally you need to await the calls to the update function inside <code>increment(times:)</code>, <code>decrement(times:)</code> and inside <code>init()</code>. Here's the updated view model:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">Model</span><span class="p">:</span> <span class="n">ObservableObject</span> <span class="p">{</span>
     <span class="p">@</span><span class="n">MainActor</span> <span class="p">@</span><span class="n">Published</span> <span class="kd">var</span> <span class="nv">counterValue</span><span class="p">:</span> <span class="nb">String</span><span class="p">?</span>
     <span class="kd">private</span> <span class="kd">var</span> <span class="nv">counter</span><span class="p">:</span> <span class="n">Counter</span>
 
@@ -148,10 +142,8 @@
         <span class="p">}</span>
     <span class="p">}</span>
 
-    <span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
-        <span class="n">Task</span> <span class="p">{</span>
-            <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
-        <span class="p">}</span>
+    <span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="n">async</span> <span class="p">{</span>
+        <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
     <span class="p">}</span>
 <span class="p">}</span>
 </div></code></pre><p>The <code>@MainActor</code> annotation of the <code>@Published</code> property <code>counterValue</code> helps with error messages. Get in the habit and think: "I will use this property in the view so it needs to be modified on the main actor."</p></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>
