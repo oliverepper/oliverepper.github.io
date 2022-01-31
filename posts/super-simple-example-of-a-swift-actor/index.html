@@ -1,0 +1,157 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="og:site_name" content="oliep"/><link rel="canonical" href="https://oliver-epper.de/posts/super-simple-example-of-a-swift-actor"/><meta name="twitter:url" content="https://oliver-epper.de/posts/super-simple-example-of-a-swift-actor"/><meta name="og:url" content="https://oliver-epper.de/posts/super-simple-example-of-a-swift-actor"/><title>Super Simple Example of a Swift Actor | oliep</title><meta name="twitter:title" content="Super Simple Example of a Swift Actor | oliep"/><meta name="og:title" content="Super Simple Example of a Swift Actor | oliep"/><meta name="description" content="Use an actor to prevent a data race"/><meta name="twitter:description" content="Use an actor to prevent a data race"/><meta name="og:description" content="Use an actor to prevent a data race"/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to oliep"/></head><body><div class="wrapper"><header><div class="container"><nav class="navigation"><a href="/">oliep</a><ul><li><a href="/posts">Posts</a></li><li><a href="/apps">Apps</a></li><li><a href="https://golf.oliver-epper.de">Golf</a></li><li><a href="/about">About</a></li></ul></nav></div></header><main class="grow"><div class="container"><article><h1>Super Simple Example of a Swift Actor</h1><div class="item-metadata"><ul><li><span class="fas fa-calendar"></span>31. Januar 2022</li><li><span class="fas fa-clock"></span>3-minute read</li></ul><div class="taglist"><span class="fas fa-tags"></span><a href="/tags/swift">Swift</a>&middot;<a href="/tags/async">async</a>&middot;<a href="/tags/actor">actor</a></div></div><p>Besides classes, structs and enum Swift has actors, now. Let's create a super simple example of what an actor can do.</p><h2>Let's build something super simple</h2><pre><code><div class="highlight"><span></span><span class="kd">class</span> <span class="nc">Counter</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">value</span> <span class="p">=</span> <span class="mi">0</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Let's build a view model that uses a counter:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">Model</span><span class="p">:</span> <span class="n">ObservableObject</span> <span class="p">{</span>
+    <span class="p">@</span><span class="n">Published</span> <span class="kd">var</span> <span class="nv">counterValue</span><span class="p">:</span> <span class="nb">String</span><span class="p">?</span>
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">counter</span><span class="p">:</span> <span class="n">Counter</span>
+
+    <span class="kd">init</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">counter</span> <span class="p">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="n">update</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">update</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="n">counter</span><span class="p">.</span><span class="n">decrement</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">update</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
+        <span class="bp">assert</span><span class="p">(</span><span class="n">Thread</span><span class="p">.</span><span class="n">isMainThread</span><span class="p">)</span>
+        <span class="n">counterValue</span> <span class="p">=</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>and a view that uses the view model:</p><pre><code><div class="highlight"><span></span><span class="kd">struct</span> <span class="nc">ContentView</span><span class="p">:</span> <span class="n">View</span> <span class="p">{</span>
+    <span class="p">@</span><span class="n">StateObject</span> <span class="kd">var</span> <span class="nv">model</span> <span class="p">=</span> <span class="n">Model</span><span class="p">()</span>
+
+    <span class="kd">var</span> <span class="nv">body</span><span class="p">:</span> <span class="n">some</span> <span class="n">View</span> <span class="p">{</span>
+        <span class="n">VStack</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="kd">let</span> <span class="nv">value</span> <span class="p">=</span> <span class="n">model</span><span class="p">.</span><span class="n">counterValue</span> <span class="p">{</span>
+                <span class="n">Text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">Button</span><span class="p">(</span><span class="s">&quot;do something...&quot;</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">let</span> <span class="nv">start</span> <span class="p">=</span> <span class="n">Date</span><span class="p">()</span>
+                <span class="n">model</span><span class="p">.</span><span class="n">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="mi">1_000_000</span><span class="p">)</span>
+                <span class="n">model</span><span class="p">.</span><span class="n">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="mi">1_000_005</span><span class="p">)</span>
+                <span class="n">model</span><span class="p">.</span><span class="n">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="mi">2_000_000</span><span class="p">)</span>
+                <span class="kd">let</span> <span class="nv">elapsed</span> <span class="p">=</span> <span class="n">Date</span><span class="p">().</span><span class="n">timeIntervalSince</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                <span class="bp">print</span><span class="p">(</span><span class="nb">String</span><span class="p">(</span><span class="n">format</span><span class="p">:</span> <span class="s">&quot;%.05f&quot;</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="p">.</span><span class="n">padding</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Press the button and the desired output <code>5</code> will appear. The time spend in the buttons closure will be printed to the console.</p><h2>Now break it</h2><p>Let's break it by offloading the millions of incrementens and decrements to another Thread. Change the view model like this:</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">DispatchQueue</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="p">.</span><span class="kd">init</span><span class="p">()).</span><span class="n">async</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">DispatchQueue</span><span class="p">.</span><span class="n">main</span><span class="p">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>or</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Thread</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">decrement</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">DispatchQueue</span><span class="p">.</span><span class="n">main</span><span class="p">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}.</span><span class="n">start</span><span class="p">()</span>
+<span class="p">}</span>
+</div></code></pre><p>If you run this now, the time spend in the "do something..." button closure is close to 0, but the UI no longer shows <code>5</code>. There's your obvious data-race.</p><h2>Fix it</h2><p>Let's go into the <code>Counter</code> and introduce a queue that will perform all mutations to the value property:</p><pre><code><div class="highlight"><span></span><span class="kd">class</span> <span class="nc">Counter</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">value</span> <span class="p">=</span> <span class="mi">0</span>
+
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">queue</span> <span class="p">=</span> <span class="n">DispatchQueue</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="s">&quot;Counter&quot;</span><span class="p">)</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">queue</span><span class="p">.</span><span class="n">sync</span> <span class="p">{</span>
+            <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">queue</span><span class="p">.</span><span class="n">sync</span> <span class="p">{</span>
+            <span class="n">value</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>The closure returns immediately and after some time (you really have to give it some time) we're getting the desired <code>5</code> in the UI again. There's a high chance that there are different values shown before all the operations are performned. Press again and it will settle with 10. All good, again.</p><h2>Fix it with an actor</h2><p>Now let's use an actor. Go back to the original Counter but make it an actor.</p><pre><code><div class="highlight"><span></span><span class="n">actor</span> <span class="n">Counter</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">value</span> <span class="p">=</span> <span class="mi">0</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>The cool things is that you can have the compiler guide you from now on.</p><p>The first error message is:</p><blockquote><p><code>Actor-isolated instance method 'increment()' can not be referenced from a non-isolated context.</code></p></blockquote><p>so let's fix that by awaiting the call to <code>counter.incerement()</code> from an async context. Change <code>increment(times:)</code> to this:</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Task</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span> <span class="c1">// not done, yet</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Do the same for <code>decrement(times:)</code> and you'll get to the next error:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from a non-isolated context.</code></p></blockquote><p>Fix this with annotating the <code>update()</code>-function with <code>@MainActor</code>.</p><p>Now the error changes to:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from the main actor.</code></p></blockquote><p>which can be fixed by wrapping the body in a <code>Task</code>. The compiler will tell you that you need to await <code>counter.value.description</code> now, so do that.</p><pre><code><div class="highlight"><span></span><span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
+    <span class="bp">assert</span><span class="p">(</span><span class="n">Thread</span><span class="p">.</span><span class="n">isMainThread</span><span class="p">)</span>
+    <span class="n">Task</span> <span class="p">{</span>
+        <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Do the same for the two calls to the update function inside <code>increment(times:)</code> and <code>decrement(times:)</code> and inside <code>init()</code>. Here's the updated view model:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">Model</span><span class="p">:</span> <span class="n">ObservableObject</span> <span class="p">{</span>
+    <span class="p">@</span><span class="n">MainActor</span> <span class="p">@</span><span class="n">Published</span> <span class="kd">var</span> <span class="nv">counterValue</span><span class="p">:</span> <span class="nb">String</span><span class="p">?</span>
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">counter</span><span class="p">:</span> <span class="n">Counter</span>
+
+    <span class="kd">init</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">counter</span> <span class="p">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="n">await</span> <span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+                <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span> <span class="c1">// not done, yet</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+                <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">decrement</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>The <code>@MainActor</code> annotation of the <code>@Published</code> property <code>counterValue</code> helps with error messages. Get in the habit and think: "I will use this property in the view so it needs to be modified on the main actor."</p></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>

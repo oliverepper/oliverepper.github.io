@@ -1,4 +1,160 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Sat, 29 Jan 2022 16:07:12 +0100</lastBuildDate><pubDate>Sat, 29 Jan 2022 16:07:12 +0100</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await</guid><title>Wrap a delegate API in async/await</title><description>How to use an existing delegate API with the new Swift concurrency system</description><link>https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await</link><pubDate>Fri, 28 Jan 2022 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>The new Swift concurrency system looks super promising in terms of cleaner and easier to reason about code in a complex application. As with SwiftUI and AppKit/UIKit there's an opportunity to wrap existing APIs and make them availabe via the new APIs.</p><h2>Create a delegate based sample API</h2><p>Although <code>URLSession</code> already has an async/await API we use it to build a super simple delegate based API.</p><pre><code><div class="highlight"><span></span><span class="kd">protocol</span> <span class="nc">DownloaderDelegate</span><span class="p">:</span> <span class="nb">AnyObject</span> <span class="p">{</span>
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Mon, 31 Jan 2022 15:14:28 +0100</lastBuildDate><pubDate>Mon, 31 Jan 2022 15:14:28 +0100</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/super-simple-example-of-a-swift-actor</guid><title>Super Simple Example of a Swift Actor</title><description>Use an actor to prevent a data race</description><link>https://oliver-epper.de/posts/super-simple-example-of-a-swift-actor</link><pubDate>Mon, 31 Jan 2022 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>Besides classes, structs and enum Swift has actors, now. Let's create a super simple example of what an actor can do.</p><h2>Let's build something super simple</h2><pre><code><div class="highlight"><span></span><span class="kd">class</span> <span class="nc">Counter</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">value</span> <span class="p">=</span> <span class="mi">0</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Let's build a view model that uses a counter:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">Model</span><span class="p">:</span> <span class="n">ObservableObject</span> <span class="p">{</span>
+    <span class="p">@</span><span class="n">Published</span> <span class="kd">var</span> <span class="nv">counterValue</span><span class="p">:</span> <span class="nb">String</span><span class="p">?</span>
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">counter</span><span class="p">:</span> <span class="n">Counter</span>
+
+    <span class="kd">init</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">counter</span> <span class="p">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="n">update</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">update</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="n">counter</span><span class="p">.</span><span class="n">decrement</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">update</span><span class="p">()</span>
+    <span class="p">}</span>
+
+    <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
+        <span class="bp">assert</span><span class="p">(</span><span class="n">Thread</span><span class="p">.</span><span class="n">isMainThread</span><span class="p">)</span>
+        <span class="n">counterValue</span> <span class="p">=</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>and a view that uses the view model:</p><pre><code><div class="highlight"><span></span><span class="kd">struct</span> <span class="nc">ContentView</span><span class="p">:</span> <span class="n">View</span> <span class="p">{</span>
+    <span class="p">@</span><span class="n">StateObject</span> <span class="kd">var</span> <span class="nv">model</span> <span class="p">=</span> <span class="n">Model</span><span class="p">()</span>
+
+    <span class="kd">var</span> <span class="nv">body</span><span class="p">:</span> <span class="n">some</span> <span class="n">View</span> <span class="p">{</span>
+        <span class="n">VStack</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="kd">let</span> <span class="nv">value</span> <span class="p">=</span> <span class="n">model</span><span class="p">.</span><span class="n">counterValue</span> <span class="p">{</span>
+                <span class="n">Text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">Button</span><span class="p">(</span><span class="s">&quot;do something...&quot;</span><span class="p">)</span> <span class="p">{</span>
+                <span class="kd">let</span> <span class="nv">start</span> <span class="p">=</span> <span class="n">Date</span><span class="p">()</span>
+                <span class="n">model</span><span class="p">.</span><span class="n">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="mi">1_000_000</span><span class="p">)</span>
+                <span class="n">model</span><span class="p">.</span><span class="n">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="mi">1_000_005</span><span class="p">)</span>
+                <span class="n">model</span><span class="p">.</span><span class="n">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="mi">2_000_000</span><span class="p">)</span>
+                <span class="kd">let</span> <span class="nv">elapsed</span> <span class="p">=</span> <span class="n">Date</span><span class="p">().</span><span class="n">timeIntervalSince</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                <span class="bp">print</span><span class="p">(</span><span class="nb">String</span><span class="p">(</span><span class="n">format</span><span class="p">:</span> <span class="s">&quot;%.05f&quot;</span><span class="p">,</span> <span class="n">elapsed</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="p">.</span><span class="n">padding</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Press the button and the desired output <code>5</code> will appear. The time spend in the buttons closure will be printed to the console.</p><h2>Now break it</h2><p>Let's break it by offloading the millions of incrementens and decrements to another Thread. Change the view model like this:</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">DispatchQueue</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="p">.</span><span class="kd">init</span><span class="p">()).</span><span class="n">async</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">DispatchQueue</span><span class="p">.</span><span class="n">main</span><span class="p">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>or</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Thread</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">decrement</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="n">DispatchQueue</span><span class="p">.</span><span class="n">main</span><span class="p">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}.</span><span class="n">start</span><span class="p">()</span>
+<span class="p">}</span>
+</div></code></pre><p>If you run this now, the time spend in the "do something..." button closure is close to 0, but the UI no longer shows <code>5</code>. There's your obvious data-race.</p><h2>Fix it</h2><p>Let's go into the <code>Counter</code> and introduce a queue that will perform all mutations to the value property:</p><pre><code><div class="highlight"><span></span><span class="kd">class</span> <span class="nc">Counter</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">value</span> <span class="p">=</span> <span class="mi">0</span>
+
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">queue</span> <span class="p">=</span> <span class="n">DispatchQueue</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="s">&quot;Counter&quot;</span><span class="p">)</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">queue</span><span class="p">.</span><span class="n">sync</span> <span class="p">{</span>
+            <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">queue</span><span class="p">.</span><span class="n">sync</span> <span class="p">{</span>
+            <span class="n">value</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>The closure returns immediately and after some time (you really have to give it some time) we're getting the desired <code>5</code> in the UI again. There's a high chance that there are different values shown before all the operations are performned. Press again and it will settle with 10. All good, again.</p><h2>Fix it with an actor</h2><p>Now let's use an actor. Go back to the original Counter but make it an actor.</p><pre><code><div class="highlight"><span></span><span class="n">actor</span> <span class="n">Counter</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nv">value</span> <span class="p">=</span> <span class="mi">0</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">value</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>The cool things is that you can have the compiler guide you from now on.</p><p>The first error message is:</p><blockquote><p><code>Actor-isolated instance method 'increment()' can not be referenced from a non-isolated context.</code></p></blockquote><p>so let's fix that by awaiting the call to <code>counter.incerement()</code> from an async context. Change <code>increment(times:)</code> to this:</p><pre><code><div class="highlight"><span></span><span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Task</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+            <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span> <span class="c1">// not done, yet</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Do the same for <code>decrement(times:)</code> and you'll get to the next error:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from a non-isolated context.</code></p></blockquote><p>Fix this with annotating the <code>update()</code>-function with <code>@MainActor</code>.</p><p>Now the error changes to:</p><blockquote><p><code>Actor-isolated property 'value' can not be referenced from the main actor.</code></p></blockquote><p>which can be fixed by wrapping the body in a <code>Task</code>. The compiler will tell you that you need to await <code>counter.value.description</code> now, so do that.</p><pre><code><div class="highlight"><span></span><span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
+    <span class="bp">assert</span><span class="p">(</span><span class="n">Thread</span><span class="p">.</span><span class="n">isMainThread</span><span class="p">)</span>
+    <span class="n">Task</span> <span class="p">{</span>
+        <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>Do the same for the two calls to the update function inside <code>increment(times:)</code> and <code>decrement(times:)</code> and inside <code>init()</code>. Here's the updated view model:</p><pre><code><div class="highlight"><span></span><span class="kr">final</span> <span class="kd">class</span> <span class="nc">Model</span><span class="p">:</span> <span class="n">ObservableObject</span> <span class="p">{</span>
+    <span class="p">@</span><span class="n">MainActor</span> <span class="p">@</span><span class="n">Published</span> <span class="kd">var</span> <span class="nv">counterValue</span><span class="p">:</span> <span class="nb">String</span><span class="p">?</span>
+    <span class="kd">private</span> <span class="kd">var</span> <span class="nv">counter</span><span class="p">:</span> <span class="n">Counter</span>
+
+    <span class="kd">init</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">counter</span> <span class="p">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="n">await</span> <span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">increment</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+                <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">increment</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span> <span class="c1">// not done, yet</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">decrement</span><span class="p">(</span><span class="n">times</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="k">for</span> <span class="kc">_</span> <span class="k">in</span> <span class="mf">1.</span><span class="p">..</span><span class="n">times</span> <span class="p">{</span>
+                <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">counter</span><span class="p">.</span><span class="n">decrement</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="n">await</span> <span class="kc">self</span><span class="p">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="p">@</span><span class="n">MainActor</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">update</span><span class="p">()</span> <span class="p">{</span>
+        <span class="n">Task</span> <span class="p">{</span>
+            <span class="n">counterValue</span> <span class="p">=</span> <span class="n">await</span> <span class="n">counter</span><span class="p">.</span><span class="n">value</span><span class="p">.</span><span class="n">description</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</div></code></pre><p>The <code>@MainActor</code> annotation of the <code>@Published</code> property <code>counterValue</code> helps with error messages. Get in the habit and think: "I will use this property in the view so it needs to be modified on the main actor."</p>]]></content:encoded></item><item><guid isPermaLink="true">https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await</guid><title>Wrap a delegate API in async/await</title><description>How to use an existing delegate API with the new Swift concurrency system</description><link>https://oliver-epper.de/posts/wrap-a-delegate-api-in-async-await</link><pubDate>Fri, 28 Jan 2022 09:41:00 +0100</pubDate><content:encoded><![CDATA[<p>The new Swift concurrency system looks super promising in terms of cleaner and easier to reason about code in a complex application. As with SwiftUI and AppKit/UIKit there's an opportunity to wrap existing APIs and make them availabe via the new APIs.</p><h2>Create a delegate based sample API</h2><p>Although <code>URLSession</code> already has an async/await API we use it to build a super simple delegate based API.</p><pre><code><div class="highlight"><span></span><span class="kd">protocol</span> <span class="nc">DownloaderDelegate</span><span class="p">:</span> <span class="nb">AnyObject</span> <span class="p">{</span>
     <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFinishDownloadingData</span> <span class="n">data</span><span class="p">:</span> <span class="n">Data</span><span class="p">)</span>
     <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFailWithError</span> <span class="n">error</span><span class="p">:</span> <span class="n">Error</span><span class="p">)</span>
     <span class="kd">func</span> <span class="nf">downloader</span><span class="p">(</span><span class="kc">_</span> <span class="n">downloader</span><span class="p">:</span> <span class="n">Downloader</span><span class="p">,</span> <span class="n">didFailWithHttpStatusCode</span> <span class="n">code</span><span class="p">:</span> <span class="nb">Int</span><span class="p">)</span>
