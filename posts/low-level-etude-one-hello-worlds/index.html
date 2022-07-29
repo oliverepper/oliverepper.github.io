@@ -16,7 +16,7 @@
 </div></code></pre><p>Let's build and run:</p><pre><code><div class="highlight"><span></span>as -o zero.o zero.s
 ld -o zero zero.o -lSystem -syslibroot <span class="sb">`</span>xcrun -sdk macosx --show-sdk-path<span class="sb">`</span> -e _start
 ./zero
-</div></code></pre><p>It should indeed print <code>Hello World</code> on the screen.</p><h3>What happens</h3><p><code>svc</code> is the mnemonic for <code>supervisor call</code> so it calls into the OS kernel and it calls the SYS_write function. How do I know? Let's check.</p><pre><code><div class="highlight"><span></span>open <span class="sb">`</span>xcrun -sdk macosx --show-sdk-path<span class="sb">`</span>/usr/include/sys/syscall.h
+</div></code></pre><p>It should indeed print <code>Hello World</code> on the screen.</p><h3>What happens</h3><p><code>svc</code> is the mnemonic for <code>supervisor call</code> so it calls into the OS kernel and it calls the SYS_write syscall. How do I know? Let's check.</p><pre><code><div class="highlight"><span></span>open <span class="sb">`</span>xcrun -sdk macosx --show-sdk-path<span class="sb">`</span>/usr/include/sys/syscall.h
 </div></code></pre><p>and see for youself.</p><pre><code><div class="highlight"><span></span><span class="c1">// [...]</span>
 <span class="cp">#define SYS_syscall        0</span>
 <span class="cp">#define SYS_exit           1</span>
