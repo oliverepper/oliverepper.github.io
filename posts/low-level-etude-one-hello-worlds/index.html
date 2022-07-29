@@ -94,7 +94,7 @@ ld -o zero zero.o -lSystem -syslibroot <span class="sb">`</span>xcrun -sdk macos
 <span class="nl">msg_sz:</span>     <span class="na">.word</span>   <span class="no">.-msg-1</span>
 </div></code></pre><p>Let's check in the debugger:</p><pre><code><div class="highlight"><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">re</span> <span class="n">r</span> <span class="n">x2</span>
       <span class="n">x2</span> <span class="p">=</span> <span class="mh">0x000000000000000d</span>
-</div></code></pre><p>That's 13!</p><h2>Hello World - puts or printf?</h2><p>Ok. We learned that we're not supposed to talk to the OS kernel directly and that we are even forced to link our binary against libSystem. How would a C Hello World example look in assembler anyway.</p><pre><code><div class="highlight"><span></span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</div></code></pre><p>That's 13!</p><h2>Hello World - puts or printf?</h2><p>Ok. We learned that we're not supposed to talk to the OS kernel directly. How would a reasonable C Hello World example look in assembler anyway.</p><pre><code><div class="highlight"><span></span><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="n">puts</span><span class="p">(</span><span class="s">&quot;Hello World!&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 </div></code></pre><p>Put that into <a href="https://godbolt.org">Compiler Explorer</a> and get: (You can click <a href="https://godbolt.org/z/aYfcEfzKc">here</a>)</p><pre><code><div class="highlight"><span></span><span class="nl">.LC0:</span>
