@@ -1,4 +1,139 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Fri, 29 Jul 2022 19:11:02 +0200</lastBuildDate><pubDate>Fri, 29 Jul 2022 19:11:02 +0200</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/low-level-etude-one-hello-worlds</guid><title>Low Level Etude One – Hello Worlds</title><description>Connect a few dots</description><link>https://oliver-epper.de/posts/low-level-etude-one-hello-worlds</link><pubDate>Fri, 29 Jul 2022 09:41:00 +0200</pubDate><content:encoded><![CDATA[<h2>Hello Worlds</h2><p>There is a great book about ARM64 assembler <a href="https://books.apple.com/de/book/programming-with-64-bit-arm-assembly-language/id1512321883">Programming with 64-Bit ARM Assembly Language</a> from <a href="https://smist08.wordpress.com">Stephen Smith</a> and the great repository <a href="https://github.com/below/HelloSilicon">Hello Silicon</a> in which <a href="https://twitter.com/avbelow">Alex</a> translated all the content from the book to Apple Silicon.</p><h2>Why Assembler</h2><p><em>Disclaimer: Don't write your software in plain Assembler!</em></p><p>With that out of the way I encourage you to actually DO WRITE (at least mini-) software in Assembler, just because it can be great fun (see here: <a href="https://tomorrowcorporation.com/humanresourcemachine">Human Resource Machine</a>) and – on a serious note – it might sharpen your debugging skills and you might appreciate what higher level languages can do for you – I think you even get a clearer view on what you want higher level languages to do.</p><h2>Hello World – syscall</h2><p>Let's start with the first Hello World example, presented in the aformentioned resources:</p><pre><code><div class="highlight"><span></span><span class="c1">; zero.s</span>
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>oliep</title><description>Golf Professional &amp; Professional Software Developer</description><link>https://oliver-epper.de</link><language>en</language><lastBuildDate>Sun, 31 Jul 2022 18:17:54 +0200</lastBuildDate><pubDate>Sun, 31 Jul 2022 18:17:54 +0200</pubDate><ttl>250</ttl><atom:link href="https://oliver-epper.de/feed.rss" rel="self" type="application/rss+xml"/><item><guid isPermaLink="true">https://oliver-epper.de/posts/low-level-etude-one-hello-worlds-part2</guid><title>Low Level Etude One – Hello Worlds (Part 2)</title><description>Connect a few dots</description><link>https://oliver-epper.de/posts/low-level-etude-one-hello-worlds-part2</link><pubDate>Sun, 31 Jul 2022 09:41:00 +0200</pubDate><content:encoded><![CDATA[<h2>Hello World - puts or printf?</h2><h3>bl - branch with link</h3><p>Let's get back on track and learn about <code>bl</code>. Consider the following simple program:</p><pre><code><div class="highlight"><span></span><span class="na">.globl</span>      <span class="no">_start</span>
+<span class="na">.p2align</span>    <span class="mi">2</span>
+
+<span class="nl">say_hello:</span>
+            <span class="nf">mov</span> <span class="no">x0</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">adrp</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGE</span>
+            <span class="nf">add</span> <span class="no">x1</span><span class="p">,</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGEOFF</span>
+            <span class="nf">adrp</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGE</span>
+            <span class="nf">add</span> <span class="no">x2</span><span class="p">,</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGEOFF</span>
+            <span class="nf">ldr</span> <span class="no">x2</span><span class="p">,</span> <span class="p">[</span><span class="no">x2</span><span class="p">]</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#4</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+
+<span class="nl">_start:</span>
+            <span class="nf">b</span> <span class="no">say_hello</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+
+
+<span class="na">.data</span>
+<span class="nl">msg:</span>        <span class="na">.asciz</span>  <span class="s">&quot;Hello World!&quot;</span>
+<span class="nl">msg_sz:</span>     <span class="na">.word</span>   <span class="no">.-msg-1</span>
+</div></code></pre><p>If you build and start this it will print <code>Hello World</code> forever. The <code>b - branch</code> instruction will jump to <code>say_hello</code> and continue execution after <code>say_hello</code> with the next line which is the same branch instruction, thus repeating forever.</p><p>So we need to change <code>b</code> to <code>bl - branch with link</code> and at the end of the <code>say_hello</code> block we add a <code>ret</code> instruction. Now the execution will continue right after the <code>bl say_hello</code> instruction. This happens because <code>bl</code> saves the address of the next instruction into the <code>lr</code> register and <code>ret</code> jumps to the address saved in the <code>lr</code> register.</p><p><strong>But!</strong> What if we override the <code>lr</code> registers content with another <code>bl</code> instruction? Let's add the following:</p><pre><code><div class="highlight"><span></span><span class="na">.globl</span>      <span class="no">_start</span>
+<span class="na">.p2align</span>    <span class="mi">2</span>
+
+<span class="nl">print_newline:</span>
+            <span class="nf">mov</span> <span class="no">x0</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">adrp</span> <span class="no">x1</span><span class="p">,</span> <span class="no">newline@PAGE</span>
+            <span class="nf">add</span> <span class="no">x1</span><span class="p">,</span> <span class="no">x1</span><span class="p">,</span> <span class="no">newline@PAGEOFF</span>
+            <span class="nf">mov</span> <span class="no">x2</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#4</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+            <span class="nf">ret</span>
+
+<span class="nl">say_hello:</span>
+            <span class="nf">mov</span> <span class="no">x0</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">adrp</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGE</span>
+            <span class="nf">add</span> <span class="no">x1</span><span class="p">,</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGEOFF</span>
+            <span class="nf">adrp</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGE</span>
+            <span class="nf">add</span> <span class="no">x2</span><span class="p">,</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGEOFF</span>
+            <span class="nf">ldr</span> <span class="no">x2</span><span class="p">,</span> <span class="p">[</span><span class="no">x2</span><span class="p">]</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#4</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+            <span class="nf">bl</span> <span class="no">print_newline</span>
+            <span class="nf">ret</span>
+
+<span class="nl">_start:</span>
+            <span class="nf">bl</span> <span class="no">say_hello</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+
+
+<span class="na">.data</span>
+<span class="nl">msg:</span>        <span class="na">.asciz</span>  <span class="s">&quot;Hello World!&quot;</span>
+<span class="nl">msg_sz:</span>     <span class="na">.word</span>   <span class="no">.-msg-1</span>
+<span class="na">.align</span> <span class="mi">4</span>
+<span class="nl">newline:</span>    <span class="na">.asciz</span>  <span class="s">&quot;\n&quot;</span>
+</div></code></pre><p>Can you already see the problem? With <code>bl print_newline</code> we save another address to the <code>lr</code> register and overwrite what was already saved. So once we call <code>ret</code> from <code>print_newline</code> we'll fall on the <code>ret</code> instruction at the end of <code>say_hello</code> which is another <code>ret</code> statement that will jump to that very location, again. So we're in an endless loop.</p><p>The easy fix is to just save the content of the <code>lr</code> register before the <code>bl</code> instruction and restore if before the <code>ret</code> instruction:</p><pre><code><div class="highlight"><span></span><span class="nl">say_hello:</span>
+            <span class="nf">mov</span> <span class="no">x0</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">adrp</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGE</span>
+            <span class="nf">add</span> <span class="no">x1</span><span class="p">,</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGEOFF</span>
+            <span class="nf">adrp</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGE</span>
+            <span class="nf">add</span> <span class="no">x2</span><span class="p">,</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGEOFF</span>
+            <span class="nf">ldr</span> <span class="no">x2</span><span class="p">,</span> <span class="p">[</span><span class="no">x2</span><span class="p">]</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#4</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+            <span class="nf">mov</span> <span class="no">x3</span><span class="p">,</span> <span class="no">lr</span>
+            <span class="nf">bl</span> <span class="no">print_newline</span>
+            <span class="nf">mov</span> <span class="no">lr</span><span class="p">,</span> <span class="no">x3</span>
+            <span class="nf">ret</span>
+</div></code></pre><p>Beware that this will only work if the code that we jump into will not fiddle with the <code>x3</code> register that we used to save the content of the <code>lr</code> register.</p><h3>Function call convention</h3><p>So what is the right way to make a proper function call in arm64 assembler? <a href="https://books.apple.com/de/book/programming-with-64-bit-arm-assembly-language/id1512321883">Stephens Book</a> has a nice summary:</p><p><strong>For the calling routine:</strong></p><ul><li>Save registers <code>x0 - x18</code> if you use them.</li><li>Move the first eight parameters into the registers <code>x0 - x7</code>. <em>Functions with varadic parameters might be handled differently, we'll come to that</em></li><li>Push additional parameters on the stack.</li><li>Use <code>bl</code> to call the function.</li><li>Evalute the return code in <code>x0</code>.</li><li>Restore <code>x0 - x18</code>, if needed.</li></ul><p><strong>For the called function:</strong></p><ul><li>Push <code>lr</code> and <code>x19 - x30</code> onto the stack if used in the routine.</li><li>Do the work.</li><li>Put return code in <code>x0</code></li><li>Pop <code>lr</code> and <code>x19 - x30</code> if pushed in step 1.</li><li>Use <code>ret</code> instruction.</li></ul><p>So that's no quite what we have been doing. Let's double check what clang did for us, again:</p><pre><code><div class="highlight"><span></span><span class="nl">.LC0:</span>
+        <span class="na">.string</span> <span class="s">&quot;Hello World!&quot;</span>
+<span class="nl">main:</span>
+        <span class="nf">stp</span>     <span class="no">x29</span><span class="p">,</span> <span class="no">x30</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">,</span> <span class="mi">-16</span><span class="p">]!</span>
+        <span class="nf">mov</span>     <span class="no">x29</span><span class="p">,</span> <span class="no">sp</span>
+        <span class="nf">adrp</span>    <span class="no">x0</span><span class="p">,</span> <span class="no">.LC0</span>
+        <span class="nf">add</span>     <span class="no">x0</span><span class="p">,</span> <span class="no">x0</span><span class="p">,</span> <span class="p">:</span><span class="no">lo12</span><span class="p">:.</span><span class="no">LC0</span>
+        <span class="nf">bl</span>      <span class="no">puts</span>
+        <span class="nf">ldp</span>     <span class="no">x29</span><span class="p">,</span> <span class="no">x30</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">],</span> <span class="mi">16</span>
+        <span class="nf">ret</span>
+</div></code></pre><p>The first line stores a pair (<em>st</em> ore <em>p</em> air) of registers on the stack after subtracting 16 from <code>sp</code>. <code>sp</code> is the stack pointer that holds the currect position of the stack. Since the stack grows in negative direction subtracting 16 makes room to save the contents of two registers.</p><p>Let's check what the two registers are. Start <code>lldb two</code> and enter <code>b start</code> and <code>r</code>. Now type <code>re r</code>.</p><pre><code><div class="highlight"><span></span><span class="n">General</span> <span class="n">Purpose</span> <span class="n">Registers</span><span class="p">:</span>
+        <span class="n">x0</span> <span class="p">=</span> <span class="mh">0x0000000000000001</span>
+        <span class="n">x1</span> <span class="p">=</span> <span class="mh">0x000000016fdff618</span>
+        <span class="n">x2</span> <span class="p">=</span> <span class="mh">0x000000016fdff628</span>
+        <span class="n">x3</span> <span class="p">=</span> <span class="mh">0x000000016fdff778</span>
+        <span class="p">[...]</span>
+       <span class="n">x27</span> <span class="p">=</span> <span class="mh">0x0000000000000000</span>
+       <span class="n">x28</span> <span class="p">=</span> <span class="mh">0x0000000000000000</span>
+        <span class="n">fp</span> <span class="p">=</span> <span class="mh">0x000000016fdff5f0</span>
+        <span class="n">lr</span> <span class="p">=</span> <span class="mh">0x000000010000d08c</span>  <span class="n">dyld</span><span class="p">`</span><span class="n">start</span> <span class="o">+</span> <span class="mi">520</span>
+        <span class="n">sp</span> <span class="p">=</span> <span class="mh">0x000000016fdff4b0</span>
+        <span class="n">pc</span> <span class="p">=</span> <span class="mh">0x0000000100003f8c</span>  <span class="n">zero</span><span class="p">`</span><span class="n">start</span>
+      <span class="n">cpsr</span> <span class="p">=</span> <span class="mh">0x60001000</span>
+</div></code></pre><p>So <code>x29</code> is the frame pointer and <code>x30</code> is the link register. Let's explore this with a minimal sample program:</p><pre><code><div class="highlight"><span></span><span class="na">.globl</span>      <span class="no">_start</span>
+<span class="na">.p2align</span>    <span class="mi">2</span>
+
+
+<span class="nl">_start:</span>
+            <span class="nf">stp</span> <span class="no">fp</span><span class="p">,</span> <span class="no">lr</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">,</span> <span class="mi">-16</span><span class="p">]!</span>
+            <span class="nf">mov</span> <span class="no">fp</span><span class="p">,</span> <span class="no">sp</span>
+
+            <span class="c1">; work</span>
+
+            <span class="nf">ldp</span> <span class="no">fp</span><span class="p">,</span> <span class="no">lr</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">],</span> <span class="mi">16</span>
+            <span class="nf">ret</span>
+</div></code></pre><p>Build the program and start it in the debugger breaking on start. Let's explore the stack:</p><pre><code><div class="highlight"><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">re</span> <span class="n">r</span> <span class="n">sp</span>
+      <span class="n">sp</span> <span class="p">=</span> <span class="mh">0x000000016fdff460</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">m</span> <span class="n">read</span> <span class="mh">0x000000016fdff460</span>
+<span class="mh">0x16fdff460</span><span class="p">:</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>  <span class="p">................</span>
+<span class="mh">0x16fdff470</span><span class="p">:</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>  <span class="p">................</span>
+</div></code></pre><p>Execute the first instruction and check again:</p><pre><code><div class="highlight"><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">re</span> <span class="n">r</span> <span class="n">sp</span>
+      <span class="n">sp</span> <span class="p">=</span> <span class="mh">0x000000016fdff450</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">m</span> <span class="n">read</span> <span class="mh">0x000000016fdff450</span>
+<span class="mh">0x16fdff450</span><span class="p">:</span> <span class="n">a0</span> <span class="n">f5</span> <span class="n">df</span> <span class="mi">6</span><span class="n">f</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">8</span><span class="n">c</span> <span class="n">d0</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">01</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>  <span class="p">...</span><span class="n">o</span><span class="p">............</span>
+<span class="mh">0x16fdff460</span><span class="p">:</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span> <span class="mi">00</span>  <span class="p">................</span>
+</div></code></pre><p>Let's check if that looks like it should:</p><pre><code><div class="highlight"><span></span><span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">re</span> <span class="n">r</span> <span class="n">fp</span>
+      <span class="n">fp</span> <span class="p">=</span> <span class="mh">0x000000016fdff5a0</span>
+<span class="p">(</span><span class="n">lldb</span><span class="p">)</span> <span class="n">re</span> <span class="n">r</span> <span class="n">lr</span>
+      <span class="n">lr</span> <span class="p">=</span> <span class="mh">0x000000010000d08c</span>  <span class="n">dyld</span><span class="p">`</span><span class="n">start</span> <span class="o">+</span> <span class="mi">520</span>
+</div></code></pre><p>Looks pretty good. Indeed the stack pointer got decremented by 16 bytes making room for the two 8 byte values saved in <code>fp</code> and <code>lr</code> and then they got pushed onto the stack. (In little endian byte order!) Next we move the <code>fp - frame pointer</code> to the new position of the stack pointer so that the called function can construct a stack frame that can hold its local variables if needed. After the work is done we pop back <code>fp</code> and <code>lr</code> and are safe to call <code>ret</code>.</p><p>So let's rewrite our last hello world example a little bit:</p><pre><code><div class="highlight"><span></span><span class="nl">say_hello:</span>
+            <span class="nf">stp</span> <span class="no">fp</span><span class="p">,</span> <span class="no">lr</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">,</span> <span class="mi">-16</span><span class="p">]!</span>
+            <span class="nf">mov</span> <span class="no">fp</span><span class="p">,</span> <span class="no">sp</span>
+
+            <span class="nf">mov</span> <span class="no">x0</span><span class="p">,</span> <span class="mi">#1</span>
+            <span class="nf">adrp</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGE</span>
+            <span class="nf">add</span> <span class="no">x1</span><span class="p">,</span> <span class="no">x1</span><span class="p">,</span> <span class="no">msg@PAGEOFF</span>
+            <span class="nf">adrp</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGE</span>
+            <span class="nf">add</span> <span class="no">x2</span><span class="p">,</span> <span class="no">x2</span><span class="p">,</span> <span class="no">msg_sz@PAGEOFF</span>
+            <span class="nf">ldr</span> <span class="no">x2</span><span class="p">,</span> <span class="p">[</span><span class="no">x2</span><span class="p">]</span>
+            <span class="nf">mov</span> <span class="no">x16</span><span class="p">,</span> <span class="mi">#4</span>
+            <span class="nf">svc</span> <span class="mi">0x80</span>
+            <span class="nf">bl</span> <span class="no">print_newline</span>
+            
+            <span class="nf">ldp</span> <span class="no">fp</span><span class="p">,</span> <span class="no">lr</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">],</span> <span class="mi">16</span>
+            <span class="nf">ret</span>
+</div></code></pre><p>So far so good!</p><p><em>Will update soon</em></p>]]></content:encoded></item><item><guid isPermaLink="true">https://oliver-epper.de/posts/low-level-etude-one-hello-worlds</guid><title>Low Level Etude One – Hello Worlds</title><description>Connect a few dots</description><link>https://oliver-epper.de/posts/low-level-etude-one-hello-worlds</link><pubDate>Fri, 29 Jul 2022 09:41:00 +0200</pubDate><content:encoded><![CDATA[<h2>Hello Worlds</h2><p>There is a great book about ARM64 assembler <a href="https://books.apple.com/de/book/programming-with-64-bit-arm-assembly-language/id1512321883">Programming with 64-Bit ARM Assembly Language</a> from <a href="https://smist08.wordpress.com">Stephen Smith</a> and the great repository <a href="https://github.com/below/HelloSilicon">Hello Silicon</a> in which <a href="https://twitter.com/avbelow">Alex</a> translated all the content from the book to Apple Silicon.</p><h2>Why Assembler</h2><p><em>Disclaimer: Don't write your software in plain Assembler!</em></p><p>With that out of the way I encourage you to actually DO WRITE (at least mini-) software in Assembler, just because it can be great fun (see here: <a href="https://tomorrowcorporation.com/humanresourcemachine">Human Resource Machine</a>) and – on a serious note – it might sharpen your debugging skills and you might appreciate what higher level languages can do for you – I think you even get a clearer view on what you want higher level languages to do.</p><h2>Hello World – syscall</h2><p>Let's start with the first Hello World example, presented in the aformentioned resources:</p><pre><code><div class="highlight"><span></span><span class="c1">; zero.s</span>
 <span class="na">.globl</span>      <span class="no">_start</span>
 <span class="na">.p2align</span>    <span class="mi">2</span>
 
