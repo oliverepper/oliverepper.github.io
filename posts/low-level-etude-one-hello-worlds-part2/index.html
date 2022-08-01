@@ -134,7 +134,7 @@
             <span class="nf">ldp</span> <span class="no">fp</span><span class="p">,</span> <span class="no">lr</span><span class="p">,</span> <span class="p">[</span><span class="no">sp</span><span class="p">],</span> <span class="mi">16</span>
             <span class="nf">ret</span>
 </div></code></pre><p>So far so good!</p><h3>Variadic parameters</h3><p>Now let's write a <code>printf</code> driven Hello World program. Since <code>printf</code> uses variadic parameters we cannot use the registers <code>x1 - x7</code> for all but the first parameter. The call convention simply differs. The variadic parameters go on the stack. Let's see how this is done:</p><pre><code><div class="highlight"><span></span><span class="na">.globl</span>            <span class="no">_start</span>
-<span class="na">.p2align</span>    <span class="mi">2</span>
+<span class="na">.p2align</span>          <span class="mi">2</span>
 
                   <span class="na">.equ</span> <span class="no">variadic_param_1</span><span class="p">,</span> <span class="mi">0</span>
 
