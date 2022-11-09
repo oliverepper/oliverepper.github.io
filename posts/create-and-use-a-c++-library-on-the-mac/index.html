@@ -6,66 +6,66 @@ sudo chown <span class="sb">`</span>whoami<span class="sb">`</span> /opt/hello
 </div></code></pre><p>Enter the following into <code>HelloService.hpp</code>:</p><pre><code><div class="highlight"><span></span><span class="cp">#ifndef HelloService_hpp</span>
 <span class="cp">#define HelloService_hpp</span>
 
-<span class="cp">#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span><span class="cp"></span>
 
-<span class="k">class</span> <span class="nc">HelloService</span> <span class="p">{</span>
-<span class="k">public</span><span class="o">:</span>
-    <span class="n">HelloService</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">text</span><span class="p">);</span>
-    <span class="o">~</span><span class="n">HelloService</span><span class="p">();</span>
-<span class="k">public</span><span class="o">:</span>
-    <span class="kt">void</span> <span class="n">setText</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">text</span><span class="p">);</span>
-    <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">getText</span><span class="p">();</span>
-<span class="k">private</span><span class="o">:</span>
-    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">m_count</span><span class="p">;</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">m_text</span><span class="p">;</span>
-<span class="p">};</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HelloService</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="n">HelloService</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">text</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="o">~</span><span class="n">HelloService</span><span class="p">();</span><span class="w"></span>
+<span class="k">public</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">setText</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">text</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">getText</span><span class="p">();</span><span class="w"></span>
+<span class="k">private</span><span class="o">:</span><span class="w"></span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">m_count</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">m_text</span><span class="p">;</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
 
 <span class="cp">#endif </span><span class="cm">/* HelloService_hpp */</span><span class="cp"></span>
-</div></code></pre><p>and add the implementation to <code>HelloService.cpp</code>:</p><pre><code><div class="highlight"><span></span><span class="cp">#include</span> <span class="cpf">&quot;HelloService.hpp&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;sstream&gt;</span><span class="cp"></span>
+</div></code></pre><p>and add the implementation to <code>HelloService.cpp</code>:</p><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;HelloService.hpp&quot;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sstream&gt;</span><span class="cp"></span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span><span class="w"></span>
 
-<span class="n">HelloService</span><span class="o">::</span><span class="n">HelloService</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span> <span class="o">&amp;</span><span class="n">text</span><span class="p">)</span> <span class="o">:</span> <span class="n">m_count</span> <span class="p">{</span> <span class="mi">0</span> <span class="p">},</span> <span class="n">m_text</span> <span class="p">{</span> <span class="n">text</span> <span class="p">}</span>
-<span class="p">{</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;HelloService created&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="n">HelloService</span><span class="o">::</span><span class="n">HelloService</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">text</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m_count</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="n">m_text</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;HelloService created&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="n">HelloService</span><span class="o">::~</span><span class="n">HelloService</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;HelloService destroyed&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="n">HelloService</span><span class="o">::~</span><span class="n">HelloService</span><span class="p">()</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;HelloService destroyed&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="kt">void</span> <span class="n">HelloService</span><span class="o">::</span><span class="n">setText</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">text</span><span class="p">)</span>
-<span class="p">{</span>
-    <span class="n">m_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="n">m_text</span> <span class="o">=</span> <span class="n">text</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">HelloService</span><span class="o">::</span><span class="n">setText</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">text</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">m_count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">m_text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">text</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">HelloService</span><span class="o">::</span><span class="n">getText</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="n">m_count</span><span class="o">++</span><span class="p">;</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span> <span class="n">oss</span><span class="p">;</span>
-    <span class="n">oss</span> <span class="o">&lt;&lt;</span> <span class="n">m_text</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">m_count</span><span class="p">;</span>
-    <span class="k">return</span> <span class="n">oss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
-<span class="p">}</span>
-</div></code></pre><p>Now let's configure CMake in <code>CMakeLists.txt</code>:</p><pre><code><div class="highlight"><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.2</span><span class="p">)</span>
+<span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">HelloService</span><span class="o">::</span><span class="n">getText</span><span class="p">()</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">m_count</span><span class="o">++</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">ostringstream</span><span class="w"> </span><span class="n">oss</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">oss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">m_text</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">m_count</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">oss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</div></code></pre><p>Now let's configure CMake in <code>CMakeLists.txt</code>:</p><pre><code><div class="highlight"><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.2</span><span class="p">)</span>
 
-<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span> <span class="s">17</span><span class="p">)</span>
-<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD_REQUIRED</span> <span class="s">ON</span><span class="p">)</span>
-<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_EXTENSIONS</span> <span class="s">OFF</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span><span class="w"> </span><span class="s">17</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD_REQUIRED</span><span class="w"> </span><span class="s">ON</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_EXTENSIONS</span><span class="w"> </span><span class="s">OFF</span><span class="p">)</span>
 
-<span class="nb">project</span><span class="p">(</span><span class="s">Hello</span> <span class="s">VERSION</span> <span class="s">0.0.1</span> <span class="s">DESCRIPTION</span> <span class="s2">&quot;HelloService&quot;</span><span class="p">)</span>
+<span class="nb">project</span><span class="p">(</span><span class="s">Hello</span><span class="w"> </span><span class="s">VERSION</span><span class="w"> </span><span class="s">0.0.1</span><span class="w"> </span><span class="s">DESCRIPTION</span><span class="w"> </span><span class="s2">&quot;HelloService&quot;</span><span class="p">)</span>
 
-<span class="nb">add_library</span><span class="p">(</span><span class="s">hello</span> <span class="s">SHARED</span> <span class="s">src/HelloService.cpp</span><span class="p">)</span>
+<span class="nb">add_library</span><span class="p">(</span><span class="s">hello</span><span class="w"> </span><span class="s">SHARED</span><span class="w"> </span><span class="s">src/HelloService.cpp</span><span class="p">)</span>
 
-<span class="nb">set_target_properties</span><span class="p">(</span><span class="s">hello</span> <span class="s">PROPERTIES</span> <span class="s">VERSION</span> <span class="o">${</span><span class="nv">PROJECT_VERSION</span><span class="o">}</span><span class="p">)</span>
-<span class="nb">set_target_properties</span><span class="p">(</span><span class="s">hello</span> <span class="s">PROPERTIES</span> <span class="s">PUBLIC_HEADER</span> <span class="s">src/HelloService.hpp</span><span class="p">)</span>
+<span class="nb">set_target_properties</span><span class="p">(</span><span class="s">hello</span><span class="w"> </span><span class="s">PROPERTIES</span><span class="w"> </span><span class="s">VERSION</span><span class="w"> </span><span class="o">${</span><span class="nv">PROJECT_VERSION</span><span class="o">}</span><span class="p">)</span>
+<span class="nb">set_target_properties</span><span class="p">(</span><span class="s">hello</span><span class="w"> </span><span class="s">PROPERTIES</span><span class="w"> </span><span class="s">PUBLIC_HEADER</span><span class="w"> </span><span class="s">src/HelloService.hpp</span><span class="p">)</span>
 
-<span class="nb">install</span><span class="p">(</span><span class="s">TARGETS</span> <span class="s">hello</span>
-    <span class="s">LIBRARY</span> <span class="s">DESTINATION</span> <span class="o">${</span><span class="nv">CMAKE_INSTALL_LIBDIR</span><span class="o">}</span>
-    <span class="s">PUBLIC_HEADER</span> <span class="s">DESTINATION</span> <span class="o">${</span><span class="nv">CMAKE_INSTALL_INCLUDEDIR</span><span class="o">}</span><span class="p">)</span>
+<span class="nb">install</span><span class="p">(</span><span class="s">TARGETS</span><span class="w"> </span><span class="s">hello</span>
+<span class="w">    </span><span class="s">LIBRARY</span><span class="w"> </span><span class="s">DESTINATION</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_INSTALL_LIBDIR</span><span class="o">}</span>
+<span class="w">    </span><span class="s">PUBLIC_HEADER</span><span class="w"> </span><span class="s">DESTINATION</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_INSTALL_INCLUDEDIR</span><span class="o">}</span><span class="p">)</span>
 </div></code></pre><h2>Build and install the library</h2><p>Now we can build and install the library with the following commands:</p><pre><code><div class="highlight"><span></span>cmake -B HelloLib/build -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/opt/hello HelloLib <span class="o">&amp;&amp;</span>
 <span class="nb">cd</span> HelloLib/build <span class="o">&amp;&amp;</span>
 make <span class="o">&amp;&amp;</span> make install <span class="o">&amp;&amp;</span>
@@ -83,19 +83,19 @@ make <span class="o">&amp;&amp;</span> make install <span class="o">&amp;&amp;</
 	<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libSystem</span><span class="p">.</span><span class="n">B</span><span class="p">.</span><span class="n">dylib</span> <span class="p">(</span><span class="n">compatibility</span> <span class="n">version</span> <span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">current</span> <span class="n">version</span> <span class="mf">1292.60</span><span class="p">.</span><span class="mi">1</span><span class="p">)</span>
 </div></code></pre><p>See that the path to <code>libhello.0.0.1.dylib</code> begins with <code>@rpath</code>? This is a cool feature of <code>dyld</code> which we will see later.</p><h2>Create a CLI program that uses the library</h2><p>Create a directory:</p><pre><code><div class="highlight"><span></span>mkdir -p HelloCLI <span class="o">&amp;&amp;</span>
 touch HelloCLI/main.cpp
-</div></code></pre><p>and enter the following to <code>main.cpp</code>:</p><pre><code><div class="highlight"><span></span><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&quot;HelloService.hpp&quot;</span><span class="cp"></span>
+</div></code></pre><p>and enter the following to <code>main.cpp</code>:</p><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;HelloService.hpp&quot;</span><span class="cp"></span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="n">HelloService</span> <span class="o">*</span><span class="n">service</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HelloService</span><span class="p">(</span><span class="s">&quot;Hi 😎&quot;</span><span class="p">);</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">service</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-    <span class="k">delete</span> <span class="n">service</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">HelloService</span><span class="w"> </span><span class="o">*</span><span class="n">service</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HelloService</span><span class="p">(</span><span class="s">&quot;Hi 😎&quot;</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">service</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">delete</span><span class="w"> </span><span class="n">service</span><span class="p">;</span><span class="w"></span>
 
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </div></code></pre><p>Now compile the program with clang:</p><pre><code><div class="highlight"><span></span>clang++ -I /opt/hello/include -L /opt/hello/lib -lhello -rpath /opt/hello/lib -o hello HelloCli/main.cpp
 </div></code></pre><p>A few words of explanation:</p><ul><li><code>-I /opt/hello/include</code> tells the compiler where to look for the required header <code>HelloService.hpp</code>.</li></ul><ul><li><code>-L /opt/hello/lib</code> tells the linker where it should look for libraries</li></ul><ul><li><code>-lhello</code> tells the linker that it should link against <code>libhello.dylib</code></li></ul><ul><li><code>-rpath /opt/hello/lib</code> is the missing puzzle piece. This tells the linker to insert <code>/opt/hello/lib</code> into the Mach-O executable as a runtime path. This allows our library to be found. You can inspect the binary with the following command <code>otool -l hello</code>:</li></ul><pre><code><div class="highlight"><span></span><span class="p">[...]</span>
 <span class="n">Load</span> <span class="n">command</span> <span class="mi">16</span>
@@ -106,41 +106,41 @@ touch HelloCLI/main.cpp
 </div></code></pre><p>If you run the programm now you should see the following:</p><pre><code><div class="highlight"><span></span><span class="n">HelloService</span> <span class="n">created</span>
 <span class="n">Hi</span> <span class="err">😎</span> <span class="mi">1</span>
 <span class="n">HelloService</span> <span class="n">destroyed</span>
-</div></code></pre><h2>Create a Swift program that uses the library</h2><ul><li>Create a new Xcode project, choose macOS app, SwiftUI for interface and SwiftUI App for lifecycle.</li><li>Press ⌘-n and begin to type out <code>Objective-C</code>. Name the file <code>HelloServiceWrapper</code></li><li>Accept the automatic creation of the bridging header. If you cancelled that you can just create a Header file and name it <code>&lt;project-name&gt;-bridging-header.h</code></li><li>Create a Header file and name it <code>HelloServiceWrapper</code></li><li>Rename <code>HelloServiceWrapper.m</code> to <code>HelloServiceWrapper.mm</code></li></ul><p>Now from the bridging-header include the wrapper-header:</p><pre><code><div class="highlight"><span></span><span class="cp">#include</span> <span class="cpf">&quot;HelloServiceWrapper.h&quot;</span><span class="cp"></span>
+</div></code></pre><h2>Create a Swift program that uses the library</h2><ul><li>Create a new Xcode project, choose macOS app, SwiftUI for interface and SwiftUI App for lifecycle.</li><li>Press ⌘-n and begin to type out <code>Objective-C</code>. Name the file <code>HelloServiceWrapper</code></li><li>Accept the automatic creation of the bridging header. If you cancelled that you can just create a Header file and name it <code>&lt;project-name&gt;-bridging-header.h</code></li><li>Create a Header file and name it <code>HelloServiceWrapper</code></li><li>Rename <code>HelloServiceWrapper.m</code> to <code>HelloServiceWrapper.mm</code></li></ul><p>Now from the bridging-header include the wrapper-header:</p><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;HelloServiceWrapper.h&quot;</span><span class="cp"></span>
 </div></code></pre><p>and add the following to <code>HelloServiceWrapper.h</code>:</p><pre><code><div class="highlight"><span></span><span class="cp">#ifndef HelloServiceWrapper_h</span>
 <span class="cp">#define HelloServiceWrapper_h</span>
 
 <span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
 
-<span class="k">@interface</span> <span class="nc">HelloServiceWrapper</span> : <span class="bp">NSObject</span>
-<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithText:</span><span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">text</span><span class="p">;</span>
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nf">getText</span><span class="p">;</span>
-<span class="k">@end</span>
+<span class="k">@interface</span> <span class="nc">HelloServiceWrapper</span> : <span class="bp">NSObject</span><span class="w"></span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithText:</span><span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">text</span><span class="p">;</span><span class="w"></span>
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nf">getText</span><span class="p">;</span><span class="w"></span>
+<span class="k">@end</span><span class="w"></span>
 
 <span class="cp">#endif </span><span class="cm">/* HelloServiceWrapper_h */</span><span class="cp"></span>
 </div></code></pre><p>Here's the implementation of the wrapper class:</p><pre><code><div class="highlight"><span></span><span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
 <span class="cp">#import &quot;HelloServiceWrapper.h&quot;</span>
-<span class="cp">#include</span> <span class="cpf">&quot;HelloService.hpp&quot;</span><span class="cp"></span>
-<span class="k">@interface</span> <span class="nc">HelloServiceWrapper</span><span class="p">()</span>
-<span class="k">@property</span> <span class="n">HelloService</span> <span class="o">*</span><span class="n">service</span><span class="p">;</span>
-<span class="k">@end</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;HelloService.hpp&quot;</span><span class="cp"></span>
+<span class="k">@interface</span> <span class="nc">HelloServiceWrapper</span><span class="p">()</span><span class="w"></span>
+<span class="k">@property</span><span class="w"> </span><span class="n">HelloService</span><span class="w"> </span><span class="o">*</span><span class="n">service</span><span class="p">;</span><span class="w"></span>
+<span class="k">@end</span><span class="w"></span>
 
-<span class="k">@implementation</span> <span class="nc">HelloServiceWrapper</span>
+<span class="k">@implementation</span> <span class="nc">HelloServiceWrapper</span><span class="w"></span>
 
-<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithText:</span><span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">text</span>
-<span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">])</span> <span class="p">{</span>
-        <span class="nb">self</span><span class="p">.</span><span class="n">service</span> <span class="o">=</span> <span class="n">new</span> <span class="n">HelloService</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">([</span><span class="n">text</span> <span class="nl">cStringUsingEncoding</span><span class="p">:</span><span class="n">NSUTF8StringEncoding</span><span class="p">]));</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="p">-</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">initWithText:</span><span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nv">text</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">self</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="nb">super</span><span class="w"> </span><span class="n">init</span><span class="p">])</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="nb">self</span><span class="p">.</span><span class="n">service</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new</span><span class="w"> </span><span class="n">HelloService</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">([</span><span class="n">text</span><span class="w"> </span><span class="n">cStringUsingEncoding</span><span class="o">:</span><span class="n">NSUTF8StringEncoding</span><span class="p">]));</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nb">self</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nf">getText</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithUTF8String</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">service</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">().</span><span class="n">c_str</span><span class="p">()];</span>
-<span class="p">}</span>
+<span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span><span class="o">*</span><span class="p">)</span><span class="nf">getText</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">stringWithUTF8String</span><span class="o">:</span><span class="nb">self</span><span class="p">.</span><span class="n">service</span><span class="o">-&gt;</span><span class="n">getText</span><span class="p">().</span><span class="n">c_str</span><span class="p">()];</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="k">@end</span>
+<span class="k">@end</span><span class="w"></span>
 </div></code></pre><p>Remeber the long(-ish) command line for clang that we used to compile the CLI tool. We need to tell Xcode the same stuff:</p><ul><li>In build settings add <code>/opt/hello/include</code> under <em>Header Search Paths</em>, and</li><li><code>/opt/hello/library</code> under <em>Library Search Paths</em>.</li><li>under <em>Other Linker Flags</em> add<ul><li><code>-lhello</code>, and</li><li><code>-rpath /opt/hello/lib</code></li></ul></li></ul><p>Now you should be able to compile the project via ⌘-b.</p><p>For a simple test enter the following into <code>ContentView.swift</code>:</p><pre><code><div class="highlight"><span></span><span class="kd">struct</span> <span class="nc">ContentView</span><span class="p">:</span> <span class="n">View</span> <span class="p">{</span>
     <span class="kd">private</span> <span class="kd">var</span> <span class="nv">service</span><span class="p">:</span> <span class="n">HelloServiceWrapper</span><span class="p">!</span> <span class="p">=</span> <span class="p">.</span><span class="kd">init</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="s">&quot;Hallo Welt&quot;</span><span class="p">)</span>
 
@@ -154,18 +154,18 @@ touch HelloCLI/main.cpp
         <source srcset="/images/HelloTool-dark.png" media="(prefers-color-scheme: dark)">
         <img src="/images/HelloTool.png" alt="Bildschirmfoto 2021-03-28 um 17.42.38">
     </picture>
-</figure><p>Now edit the library code in <code>HelloService.cpp</code> and add something that you can recognise:</p><pre><code><div class="highlight"><span></span><span class="gh">diff --git a/src/HelloService.cpp b/src/HelloService.cpp</span>
-<span class="gh">index 7eeb6ae..74e188a 100644</span>
-<span class="gd">--- a/src/HelloService.cpp</span>
-<span class="gi">+++ b/src/HelloService.cpp</span>
-<span class="gu">@@ -24,6 +24,6 @@ const std::string HelloService::getText()</span>
- {
-     m_count++;
-     std::ostringstream oss;
-<span class="gd">-    oss &lt;&lt; m_text &lt;&lt; &quot; &quot; &lt;&lt; m_count;</span>
-<span class="gi">+    oss &lt;&lt; m_text &lt;&lt; &quot; called: &quot; &lt;&lt; m_count &lt;&lt; &quot; times.&quot;;</span>
-     return oss.str();
- }
+</figure><p>Now edit the library code in <code>HelloService.cpp</code> and add something that you can recognise:</p><pre><code><div class="highlight"><span></span><span class="gh">diff --git a/src/HelloService.cpp b/src/HelloService.cpp</span><span class="w"></span>
+<span class="gh">index 7eeb6ae..74e188a 100644</span><span class="w"></span>
+<span class="gd">--- a/src/HelloService.cpp</span><span class="w"></span>
+<span class="gi">+++ b/src/HelloService.cpp</span><span class="w"></span>
+<span class="gu">@@ -24,6 +24,6 @@ const std::string HelloService::getText()</span><span class="w"></span>
+<span class="w"> </span>{<span class="w"></span>
+<span class="w"> </span>    m_count++;<span class="w"></span>
+<span class="w"> </span>    std::ostringstream oss;<span class="w"></span>
+<span class="gd">-    oss &lt;&lt; m_text &lt;&lt; &quot; &quot; &lt;&lt; m_count;</span><span class="w"></span>
+<span class="gi">+    oss &lt;&lt; m_text &lt;&lt; &quot; called: &quot; &lt;&lt; m_count &lt;&lt; &quot; times.&quot;;</span><span class="w"></span>
+<span class="w"> </span>    return oss.str();<span class="w"></span>
+<span class="w"> </span>}<span class="w"></span>
 </div></code></pre><p>and recompile and install the library:</p><pre><code><div class="highlight"><span></span><span class="nb">cd</span> HelloLib/build <span class="o">&amp;&amp;</span>
 make <span class="o">&amp;&amp;</span> make install <span class="o">&amp;&amp;</span>
 <span class="nb">cd</span> ../..
@@ -174,17 +174,17 @@ make <span class="o">&amp;&amp;</span> make install <span class="o">&amp;&amp;</
         <source srcset="/images/HelloTool2-dark.png" media="(prefers-color-scheme: dark)">
         <img src="/images/HelloTool2.png" alt="HelloTool2">
     </picture>
-</figure><p>Give it another test. Close the window with ⌘-w and open it again from Finder. Now it should read:</p><blockquote><p>Hallo Welt called: 2 times.</p></blockquote><h2>Next?</h2><p>What do you want to read next? Two things would be cool to figure out:</p><ol><li>How to allow for library validation, and</li><li>How to build an AppKit app only in C++ (I wouldn't consider doing that, but could be fun anyways).</li></ol><h2>Update</h2><p>Regarding the missing allowance for library validation. This is how you can codesign directly from CMake. Edit the CMakeLists.txt file:</p><pre><code><div class="highlight"><span></span><span class="gh">diff --git a/CMakeLists.txt b/CMakeLists.txt</span>
-<span class="gh">index 0d2a499..9e37fc4 100644</span>
-<span class="gd">--- a/CMakeLists.txt</span>
-<span class="gi">+++ b/CMakeLists.txt</span>
-<span class="gu">@@ -11,6 +11,8 @@ add_library(hello SHARED src/HelloService.cpp)</span>
- set_target_properties(hello PROPERTIES VERSION ${PROJECT_VERSION})
- set_target_properties(hello PROPERTIES PUBLIC_HEADER src/HelloService.hpp)
- 
-<span class="gi">+add_custom_command(TARGET hello POST_BUILD COMMAND codesign -s &quot;your_developer_id_application_certificate&quot; $&lt;TARGET_FILE:hello&gt;)</span>
-<span class="gi">+</span>
- install(TARGETS hello
-     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+</figure><p>Give it another test. Close the window with ⌘-w and open it again from Finder. Now it should read:</p><blockquote><p>Hallo Welt called: 2 times.</p></blockquote><h2>Next?</h2><p>What do you want to read next? Two things would be cool to figure out:</p><ol><li>How to allow for library validation, and</li><li>How to build an AppKit app only in C++ (I wouldn't consider doing that, but could be fun anyways).</li></ol><h2>Update</h2><p>Regarding the missing allowance for library validation. This is how you can codesign directly from CMake. Edit the CMakeLists.txt file:</p><pre><code><div class="highlight"><span></span><span class="gh">diff --git a/CMakeLists.txt b/CMakeLists.txt</span><span class="w"></span>
+<span class="gh">index 0d2a499..9e37fc4 100644</span><span class="w"></span>
+<span class="gd">--- a/CMakeLists.txt</span><span class="w"></span>
+<span class="gi">+++ b/CMakeLists.txt</span><span class="w"></span>
+<span class="gu">@@ -11,6 +11,8 @@ add_library(hello SHARED src/HelloService.cpp)</span><span class="w"></span>
+<span class="w"> </span>set_target_properties(hello PROPERTIES VERSION ${PROJECT_VERSION})<span class="w"></span>
+<span class="w"> </span>set_target_properties(hello PROPERTIES PUBLIC_HEADER src/HelloService.hpp)<span class="w"></span>
+<span class="w"> </span>
+<span class="gi">+add_custom_command(TARGET hello POST_BUILD COMMAND codesign -s &quot;your_developer_id_application_certificate&quot; $&lt;TARGET_FILE:hello&gt;)</span><span class="w"></span>
+<span class="gi">+</span><span class="w"></span>
+<span class="w"> </span>install(TARGETS hello<span class="w"></span>
+<span class="w"> </span>    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}<span class="w"></span>
+<span class="w"> </span>    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})<span class="w"></span>
 </div></code></pre><p>Now you can enable <em>library validation</em> in Xcode.</p></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>

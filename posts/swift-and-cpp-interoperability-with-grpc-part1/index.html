@@ -3,63 +3,63 @@ touch chuckle/<span class="o">{</span>chuckle.cpp,chuckle.h,Cli.cpp,CMakeLists.t
 </div></code></pre><p>And add the following content:</p><h4>chuckle.h</h4><pre><code><div class="highlight"><span></span><span class="cp">#ifndef CHUCKLE_CHUCKLE_H</span>
 <span class="cp">#define CHUCKLE_CHUCKLE_H</span>
 
-<span class="cp">#include</span> <span class="cpf">&lt;string&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span><span class="cp"></span>
 
-<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">joke</span><span class="p">();</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">joke</span><span class="p">();</span><span class="w"></span>
 
 <span class="cp">#endif </span><span class="c1">//CHUCKLE_CHUCKLE_H</span>
-</div></code></pre><h4>chuckle.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;cpr/cpr.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;nlohmann/json.hpp&gt;</span><span class="cp"></span>
+</div></code></pre><h4>chuckle.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cpr/cpr.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span><span class="cp"></span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">cpr</span><span class="p">;</span>
-<span class="k">using</span> <span class="n">json</span> <span class="o">=</span> <span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cpr</span><span class="p">;</span><span class="w"></span>
+<span class="k">using</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">;</span><span class="w"></span>
 
-<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">joke</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">Response</span> <span class="n">r</span> <span class="o">=</span> <span class="n">Get</span><span class="p">(</span><span class="n">Url</span><span class="p">(</span><span class="s">&quot;https://api.chucknorris.io/jokes/random&quot;</span><span class="p">));</span>
-    <span class="n">json</span> <span class="n">j</span> <span class="o">=</span> <span class="n">json</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">text</span><span class="p">);</span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">joke</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">Response</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Get</span><span class="p">(</span><span class="n">Url</span><span class="p">(</span><span class="s">&quot;https://api.chucknorris.io/jokes/random&quot;</span><span class="p">));</span><span class="w"></span>
+<span class="w">    </span><span class="n">json</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">text</span><span class="p">);</span><span class="w"></span>
 
-    <span class="k">return</span> <span class="n">j</span><span class="p">[</span><span class="s">&quot;value&quot;</span><span class="p">];</span>
-<span class="p">}</span>
-</div></code></pre><h4>Cli.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">j</span><span class="p">[</span><span class="s">&quot;value&quot;</span><span class="p">];</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</div></code></pre><h4>Cli.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">joke</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-    
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</div></code></pre><p>and finally</p><h4>CMakeLists.txt</h4><pre><code><div class="highlight"><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.19</span><span class="p">)</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">joke</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</div></code></pre><p>and finally</p><h4>CMakeLists.txt</h4><pre><code><div class="highlight"><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.19</span><span class="p">)</span>
 <span class="nb">project</span><span class="p">(</span><span class="s">chuckle</span><span class="p">)</span>
 
-<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span> <span class="s">17</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span><span class="w"> </span><span class="s">17</span><span class="p">)</span>
 
-<span class="nb">set</span><span class="p">(</span><span class="s">CPR_BUILD_TESTS</span> <span class="s">OFF</span><span class="p">)</span>
-<span class="nb">set</span><span class="p">(</span><span class="s">CPR_BUILD_TESTS_SSL</span> <span class="s">OFF</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CPR_BUILD_TESTS</span><span class="w"> </span><span class="s">OFF</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">CPR_BUILD_TESTS_SSL</span><span class="w"> </span><span class="s">OFF</span><span class="p">)</span>
 
 <span class="nb">include</span><span class="p">(</span><span class="s">FetchContent</span><span class="p">)</span>
 <span class="nb">FetchContent_Declare</span><span class="p">(</span>
-        <span class="s">cpr</span>
-        <span class="s">GIT_REPOSITORY</span> <span class="s">https://github.com/whoshuu/cpr.git</span>
-        <span class="s">GIT_TAG</span> <span class="s">1.6.2</span><span class="p">)</span>
+<span class="w">        </span><span class="s">cpr</span>
+<span class="w">        </span><span class="s">GIT_REPOSITORY</span><span class="w"> </span><span class="s">https://github.com/whoshuu/cpr.git</span>
+<span class="w">        </span><span class="s">GIT_TAG</span><span class="w"> </span><span class="s">1.6.2</span><span class="p">)</span>
 <span class="nb">FetchContent_MakeAvailable</span><span class="p">(</span><span class="s">cpr</span><span class="p">)</span>
 
 <span class="nb">FetchContent_Declare</span><span class="p">(</span><span class="s">json</span>
-        <span class="s">GIT_REPOSITORY</span> <span class="s">https://github.com/nlohmann/json.git</span>
-        <span class="s">GIT_TAG</span> <span class="s">v3.7.3</span><span class="p">)</span>
+<span class="w">        </span><span class="s">GIT_REPOSITORY</span><span class="w"> </span><span class="s">https://github.com/nlohmann/json.git</span>
+<span class="w">        </span><span class="s">GIT_TAG</span><span class="w"> </span><span class="s">v3.7.3</span><span class="p">)</span>
 <span class="nb">FetchContent_GetProperties</span><span class="p">(</span><span class="s">json</span><span class="p">)</span>
-<span class="nb">if</span><span class="p">(</span><span class="s">NOT</span> <span class="s">json_POPULATED</span><span class="p">)</span>
-    <span class="nb">FetchContent_Populate</span><span class="p">(</span><span class="s">json</span><span class="p">)</span>
-    <span class="nb">add_subdirectory</span><span class="p">(</span><span class="o">${</span><span class="nv">json_SOURCE_DIR</span><span class="o">}</span> <span class="o">${</span><span class="nv">json_BINARY_DIR</span><span class="o">}</span> <span class="s">EXCLUDE_FROM_ALL</span><span class="p">)</span>
+<span class="nb">if</span><span class="p">(</span><span class="s">NOT</span><span class="w"> </span><span class="s">json_POPULATED</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">FetchContent_Populate</span><span class="p">(</span><span class="s">json</span><span class="p">)</span>
+<span class="w">    </span><span class="nb">add_subdirectory</span><span class="p">(</span><span class="o">${</span><span class="nv">json_SOURCE_DIR</span><span class="o">}</span><span class="w"> </span><span class="o">${</span><span class="nv">json_BINARY_DIR</span><span class="o">}</span><span class="w"> </span><span class="s">EXCLUDE_FROM_ALL</span><span class="p">)</span>
 <span class="nb">endif</span><span class="p">()</span>
 
-<span class="nb">add_library</span><span class="p">(</span><span class="s">chuckle</span> <span class="s">chuckle.cpp</span> <span class="s">chuckle.h</span><span class="p">)</span>
-<span class="nb">add_executable</span><span class="p">(</span><span class="s">joke</span> <span class="s">Cli.cpp</span><span class="p">)</span>
+<span class="nb">add_library</span><span class="p">(</span><span class="s">chuckle</span><span class="w"> </span><span class="s">chuckle.cpp</span><span class="w"> </span><span class="s">chuckle.h</span><span class="p">)</span>
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">joke</span><span class="w"> </span><span class="s">Cli.cpp</span><span class="p">)</span>
 
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">chuckle</span> <span class="s">PRIVATE</span> <span class="s">cpr::cpr</span> <span class="s">nlohmann_json::nlohmann_json</span><span class="p">)</span>
-<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">joke</span> <span class="s">chuckle</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">chuckle</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">cpr::cpr</span><span class="w"> </span><span class="s">nlohmann_json::nlohmann_json</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">joke</span><span class="w"> </span><span class="s">chuckle</span><span class="p">)</span>
 </div></code></pre><p>I am not a C++ programmer but I think the C++ code is quite readable. There's a free function <code>joke()</code> that returns a <code>std::string</code> representing a Joke – how usefull is that!</p><p>I used two dependencies for this great programm:</p><ul><li><a href="https://github.com/whoshuu/cpr">C++ Requests: Curl for People</a></li><li><a href="https://github.com/nlohmann/json">JSON for Modern C++</a></li></ul><p>If you never used CMake before – I didn't – let me point out a few things. <code>add_library</code> and <code>add_executable</code> add a target to the CMake project. <code>target_link_libraries</code> configures the linker to link build artefacts into products. In the above example you will end with the library <code>libchuckle</code> that we will use and a command line programm <code>joke</code> that you can run to test the library.</p><p>Both <code>FetchContent</code>-blocks are taken from the documentation from the two libraries that we use. Note that I configured the build of cpr by setting the two variables <code>CPR_BUILD_TESTS</code> and <code>CPR_BUILD_TESTS_SSL</code> to <code>OFF</code>.</p><p>We should be able to print a joke to the terminal, now. From inside the <code>chuckle</code> folder do the following:</p><pre><code><div class="highlight"><span></span>mkdir out <span class="o">&amp;&amp;</span>
 <span class="nb">cd</span> out <span class="o">&amp;&amp;</span>
 cmake ..
@@ -79,7 +79,7 @@ cmake ..
     <span class="n">pointer</span> <span class="n">to</span> <span class="n">joke</span><span class="p">();</span>
     <span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
-</div></code></pre><p>It's just a pointer. Not the real deal. <code>libchuckle.dylib</code> has it. Check if you want to :-D</p><h4>build a static library</h4><p>Building libchuckle as a static library is easy with CMake. Just add the STATIC keyword to the chuckle target:</p><pre><code><div class="highlight"><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">chuckle</span> <span class="s">STATIC</span> <span class="s">chuckle.cpp</span> <span class="s">chuckle.h</span><span class="p">)</span>
+</div></code></pre><p>It's just a pointer. Not the real deal. <code>libchuckle.dylib</code> has it. Check if you want to :-D</p><h4>build a static library</h4><p>Building libchuckle as a static library is easy with CMake. Just add the STATIC keyword to the chuckle target:</p><pre><code><div class="highlight"><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">chuckle</span><span class="w"> </span><span class="s">STATIC</span><span class="w"> </span><span class="s">chuckle.cpp</span><span class="w"> </span><span class="s">chuckle.h</span><span class="p">)</span>
 </div></code></pre><p>This time you might want to generate the build system in another folder:</p><pre><code><div class="highlight"><span></span>mkdir static <span class="o">&amp;&amp;</span>
 <span class="nb">cd</span> static <span class="o">&amp;&amp;</span>
 cmake .. <span class="o">&amp;&amp;</span>
@@ -210,24 +210,24 @@ cp -a libchuckle.xcframework ChuckleWrapper/lib
 
 <span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
 
-<span class="k">@interface</span> <span class="nc">ChuckleWrapper</span> : <span class="bp">NSObject</span>
+<span class="k">@interface</span> <span class="nc">ChuckleWrapper</span> : <span class="bp">NSObject</span><span class="w"></span>
 
-<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="p">;</span>
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="p">;</span><span class="w"></span>
 
-<span class="k">@end</span>
+<span class="k">@end</span><span class="w"></span>
 
 <span class="cp">#endif </span><span class="cm">/* ChuckleWrapper_h */</span><span class="cp"></span>
 </div></code></pre><p>and it's implementation</p><h4>ObjC/ChuckleWrapper.mm</h4><pre><code><div class="highlight"><span></span><span class="cp">#import &quot;ChuckleWrapper.h&quot;</span>
-<span class="cp">#include</span> <span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
 
-<span class="k">@implementation</span> <span class="nc">ChuckleWrapper</span>
+<span class="k">@implementation</span> <span class="nc">ChuckleWrapper</span><span class="w"></span>
 
-<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">joke</span>
-<span class="p">{</span>
-    <span class="k">return</span> <span class="p">[</span><span class="bp">NSString</span> <span class="nl">stringWithCString</span><span class="p">:</span><span class="n">joke</span><span class="p">().</span><span class="n">c_str</span><span class="p">()</span> <span class="nl">encoding</span><span class="p">:[</span><span class="bp">NSString</span> <span class="n">defaultCStringEncoding</span><span class="p">]];</span>
-<span class="p">}</span>
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">stringWithCString</span><span class="o">:</span><span class="n">joke</span><span class="p">().</span><span class="n">c_str</span><span class="p">()</span><span class="w"> </span><span class="n">encoding</span><span class="o">:</span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">defaultCStringEncoding</span><span class="p">]];</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 
-<span class="k">@end</span>
+<span class="k">@end</span><span class="w"></span>
 </div></code></pre><p>Here we can include <code>chuckle.h</code> because we copied the header file into our xcframework and let the <code>ObjC</code> target depend on that via</p><h4>Package.swift</h4><pre><code><div class="highlight"><span></span><span class="c1">// swift-tools-version:5.3</span>
 <span class="kd">import</span> <span class="nc">PackageDescription</span>
 
