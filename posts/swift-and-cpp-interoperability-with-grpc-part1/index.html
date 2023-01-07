@@ -1,36 +1,36 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="og:site_name" content="oliep"/><link rel="canonical" href="https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1"/><meta name="twitter:url" content="https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1"/><meta name="og:url" content="https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1"/><title>Swift and C++ interoperability with gRPC part 1 | oliep</title><meta name="twitter:title" content="Swift and C++ interoperability with gRPC part 1 | oliep"/><meta name="og:title" content="Swift and C++ interoperability with gRPC part 1 | oliep"/><meta name="description" content="Let's (mis-)use gRPC to create Swift and C++ interoperability"/><meta name="twitter:description" content="Let's (mis-)use gRPC to create Swift and C++ interoperability"/><meta name="og:description" content="Let's (mis-)use gRPC to create Swift and C++ interoperability"/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to oliep"/></head><body><div class="wrapper"><header><div class="container"><nav class="navigation"><a href="/">oliep</a><ul><li><a href="/posts">Posts</a></li><li><a href="/apps">Apps</a></li><li><a href="https://golf.oliver-epper.de">Golf</a></li><li><a href="/about">About</a></li></ul></nav></div></header><main class="grow"><div class="container"><article><h1>Swift and C++ interoperability with gRPC part 1</h1><div class="item-metadata"><ul><li><span class="fas fa-calendar"></span>1. Juli 2021</li><li><span class="fas fa-clock"></span>12-minute read</li></ul><div class="taglist"><span class="fas fa-tags"></span><a href="/tags/swift">Swift</a>&middot;<a href="/tags/c">C++</a>&middot;<a href="/tags/spm">SPM</a>&middot;<a href="/tags/cmake">CMake</a>&middot;<a href="/tags/xcframework">xcframework</a>&middot;<a href="/tags/xcode">Xcode</a></div></div><h2>Prolog</h2><p>This is going to be fun. I will show you how you can embed a gRPC server written in C++ in a Swift programm that you can run on a Mac or an iPhone. I'll use another gRPC server written in Swift so that not only the Swift part can call into C++ via gRPC but the C++ part can call into Swift via gRPC as well – all in the same process, of course :-D</p><h2>But why?</h2><p>Well first it's <strong>fun</strong>, second you can learn a few things along the way and third: Given the right situation and constraints this can be a great idea!</p><h2>Warning</h2><p>There're definitely a few other – more straight forward ways – of doing Swift/C++ interoperability; not all great though and with different trade offs. If you read through the end you know enough to decide wether or not this is for you.</p><p><em>I do want to mention that Swift is – by far – the coolest programming language that I've came across and that it runs on Darwin, Linux and Windows and that you should really revistit your life choices if you manouvered yourself in the corner googleing for an article like this ;)</em></p><h2>Start easy - create a demo library</h2><p>Let's first create a little library in C++ that uses some random dependencies and cross-compile that for iPhone, iPhone simulators and the Mac running on Intel or Apple-Silicon. To enable multi-architectures we'll use fat-libs and to enable multi-platform support we'll stuff these fat-libs into a xcframework. All will be done via CMake, the <a href="https://github.com/leetal/ios-cmake">ios-cmake</a> toolchain and a small shell script.</p><h3>chukle library</h3><p>Start by creating a directory and a few files:</p><pre><code><div class="highlight"><span></span>mkdir chuckle <span class="o">&amp;&amp;</span>
-touch chuckle/<span class="o">{</span>chuckle.cpp,chuckle.h,Cli.cpp,CMakeLists.txt<span class="o">}</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="og:site_name" content="oliep"/><link rel="canonical" href="https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1"/><meta name="twitter:url" content="https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1"/><meta name="og:url" content="https://oliver-epper.de/posts/swift-and-cpp-interoperability-with-grpc-part1"/><title>Swift and C++ interoperability with gRPC part 1 | oliep</title><meta name="twitter:title" content="Swift and C++ interoperability with gRPC part 1 | oliep"/><meta name="og:title" content="Swift and C++ interoperability with gRPC part 1 | oliep"/><meta name="description" content="Let's (mis-)use gRPC to create Swift and C++ interoperability"/><meta name="twitter:description" content="Let's (mis-)use gRPC to create Swift and C++ interoperability"/><meta name="og:description" content="Let's (mis-)use gRPC to create Swift and C++ interoperability"/><meta name="twitter:card" content="summary"/><link rel="stylesheet" href="/styles.css" type="text/css"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="shortcut icon" href="/images/favicon.png" type="image/png"/><link rel="alternate" href="/feed.rss" type="application/rss+xml" title="Subscribe to oliep"/></head><body><div class="wrapper"><header><div class="container"><nav class="navigation"><a href="/">oliep</a><ul><li><a href="/posts">Posts</a></li><li><a href="/apps">Apps</a></li><li><a href="https://golf.oliver-epper.de">Golf</a></li><li><a href="/about">About</a></li></ul></nav></div></header><main class="grow"><div class="container"><article><h1>Swift and C++ interoperability with gRPC part 1</h1><div class="item-metadata"><ul><li><span class="fas fa-calendar"></span>1. Juli 2021</li><li><span class="fas fa-clock"></span>12-minute read</li></ul><div class="taglist"><span class="fas fa-tags"></span><a href="/tags/swift">Swift</a>&middot;<a href="/tags/c">C++</a>&middot;<a href="/tags/spm">SPM</a>&middot;<a href="/tags/cmake">CMake</a>&middot;<a href="/tags/xcframework">xcframework</a>&middot;<a href="/tags/xcode">Xcode</a></div></div><h2>Prolog</h2><p>This is going to be fun. I will show you how you can embed a gRPC server written in C++ in a Swift programm that you can run on a Mac or an iPhone. I'll use another gRPC server written in Swift so that not only the Swift part can call into C++ via gRPC but the C++ part can call into Swift via gRPC as well – all in the same process, of course :-D</p><h2>But why?</h2><p>Well first it's <strong>fun</strong>, second you can learn a few things along the way and third: Given the right situation and constraints this can be a great idea!</p><h2>Warning</h2><p>There're definitely a few other – more straight forward ways – of doing Swift/C++ interoperability; not all great though and with different trade offs. If you read through the end you know enough to decide wether or not this is for you.</p><p><em>I do want to mention that Swift is – by far – the coolest programming language that I've came across and that it runs on Darwin, Linux and Windows and that you should really revistit your life choices if you manouvered yourself in the corner googleing for an article like this ;)</em></p><h2>Start easy - create a demo library</h2><p>Let's first create a little library in C++ that uses some random dependencies and cross-compile that for iPhone, iPhone simulators and the Mac running on Intel or Apple-Silicon. To enable multi-architectures we'll use fat-libs and to enable multi-platform support we'll stuff these fat-libs into a xcframework. All will be done via CMake, the <a href="https://github.com/leetal/ios-cmake">ios-cmake</a> toolchain and a small shell script.</p><h3>chukle library</h3><p>Start by creating a directory and a few files:</p><pre><code><div class="highlight"><span></span>mkdir<span class="w"> </span>chuckle<span class="w"> </span><span class="o">&amp;&amp;</span>
+touch<span class="w"> </span>chuckle/<span class="o">{</span>chuckle.cpp,chuckle.h,Cli.cpp,CMakeLists.txt<span class="o">}</span>
 </div></code></pre><p>And add the following content:</p><h4>chuckle.h</h4><pre><code><div class="highlight"><span></span><span class="cp">#ifndef CHUCKLE_CHUCKLE_H</span>
 <span class="cp">#define CHUCKLE_CHUCKLE_H</span>
 
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
 
-<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">joke</span><span class="p">();</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">joke</span><span class="p">();</span>
 
 <span class="cp">#endif </span><span class="c1">//CHUCKLE_CHUCKLE_H</span>
-</div></code></pre><h4>chuckle.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cpr/cpr.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span><span class="cp"></span>
+</div></code></pre><h4>chuckle.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cpr/cpr.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;nlohmann/json.hpp&gt;</span>
 
-<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cpr</span><span class="p">;</span><span class="w"></span>
-<span class="k">using</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">;</span><span class="w"></span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">cpr</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="n">json</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="p">;</span>
 
-<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">joke</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">Response</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Get</span><span class="p">(</span><span class="n">Url</span><span class="p">(</span><span class="s">&quot;https://api.chucknorris.io/jokes/random&quot;</span><span class="p">));</span><span class="w"></span>
-<span class="w">    </span><span class="n">json</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">text</span><span class="p">);</span><span class="w"></span>
+<span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="nf">joke</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">Response</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Get</span><span class="p">(</span><span class="n">Url</span><span class="p">(</span><span class="s">&quot;https://api.chucknorris.io/jokes/random&quot;</span><span class="p">));</span>
+<span class="w">    </span><span class="n">json</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">::</span><span class="n">parse</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">text</span><span class="p">);</span>
 
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">j</span><span class="p">[</span><span class="s">&quot;value&quot;</span><span class="p">];</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
-</div></code></pre><h4>Cli.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span><span class="cp"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">j</span><span class="p">[</span><span class="s">&quot;value&quot;</span><span class="p">];</span>
+<span class="p">}</span>
+</div></code></pre><h4>Cli.cpp</h4><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
 
-<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span><span class="w"></span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">std</span><span class="p">;</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">joke</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">endl</span><span class="p">;</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">joke</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">endl</span><span class="p">;</span>
 <span class="w">    </span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 </div></code></pre><p>and finally</p><h4>CMakeLists.txt</h4><pre><code><div class="highlight"><span></span><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.19</span><span class="p">)</span>
 <span class="nb">project</span><span class="p">(</span><span class="s">chuckle</span><span class="p">)</span>
 
@@ -60,9 +60,9 @@ touch chuckle/<span class="o">{</span>chuckle.cpp,chuckle.h,Cli.cpp,CMakeLists.t
 
 <span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">chuckle</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">cpr::cpr</span><span class="w"> </span><span class="s">nlohmann_json::nlohmann_json</span><span class="p">)</span>
 <span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">joke</span><span class="w"> </span><span class="s">chuckle</span><span class="p">)</span>
-</div></code></pre><p>I am not a C++ programmer but I think the C++ code is quite readable. There's a free function <code>joke()</code> that returns a <code>std::string</code> representing a Joke – how usefull is that!</p><p>I used two dependencies for this great programm:</p><ul><li><a href="https://github.com/whoshuu/cpr">C++ Requests: Curl for People</a></li><li><a href="https://github.com/nlohmann/json">JSON for Modern C++</a></li></ul><p>If you never used CMake before – I didn't – let me point out a few things. <code>add_library</code> and <code>add_executable</code> add a target to the CMake project. <code>target_link_libraries</code> configures the linker to link build artefacts into products. In the above example you will end with the library <code>libchuckle</code> that we will use and a command line programm <code>joke</code> that you can run to test the library.</p><p>Both <code>FetchContent</code>-blocks are taken from the documentation from the two libraries that we use. Note that I configured the build of cpr by setting the two variables <code>CPR_BUILD_TESTS</code> and <code>CPR_BUILD_TESTS_SSL</code> to <code>OFF</code>.</p><p>We should be able to print a joke to the terminal, now. From inside the <code>chuckle</code> folder do the following:</p><pre><code><div class="highlight"><span></span>mkdir out <span class="o">&amp;&amp;</span>
-<span class="nb">cd</span> out <span class="o">&amp;&amp;</span>
-cmake ..
+</div></code></pre><p>I am not a C++ programmer but I think the C++ code is quite readable. There's a free function <code>joke()</code> that returns a <code>std::string</code> representing a Joke – how usefull is that!</p><p>I used two dependencies for this great programm:</p><ul><li><a href="https://github.com/whoshuu/cpr">C++ Requests: Curl for People</a></li><li><a href="https://github.com/nlohmann/json">JSON for Modern C++</a></li></ul><p>If you never used CMake before – I didn't – let me point out a few things. <code>add_library</code> and <code>add_executable</code> add a target to the CMake project. <code>target_link_libraries</code> configures the linker to link build artefacts into products. In the above example you will end with the library <code>libchuckle</code> that we will use and a command line programm <code>joke</code> that you can run to test the library.</p><p>Both <code>FetchContent</code>-blocks are taken from the documentation from the two libraries that we use. Note that I configured the build of cpr by setting the two variables <code>CPR_BUILD_TESTS</code> and <code>CPR_BUILD_TESTS_SSL</code> to <code>OFF</code>.</p><p>We should be able to print a joke to the terminal, now. From inside the <code>chuckle</code> folder do the following:</p><pre><code><div class="highlight"><span></span>mkdir<span class="w"> </span>out<span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="nb">cd</span><span class="w"> </span>out<span class="w"> </span><span class="o">&amp;&amp;</span>
+cmake<span class="w"> </span>..
 </div></code></pre><p>This will download the dependencies and configure the build system. Once that's done you can build everything with:</p><pre><code><div class="highlight"><span></span>make
 </div></code></pre><p>and run the cli:</p><pre><code><div class="highlight"><span></span>./joke
 </div></code></pre><blockquote><p>Chuck Norris can mix water and oil.</p></blockquote><p>Let's inspect what we have got so far:</p><ul><li>the <code>joke</code> programm and</li><li><code>libchuckle.dylib</code></li></ul><p>Check the binary with <code>otool -L joke</code> you'll see something like this:</p><pre><code><div class="highlight"><span></span><span class="n">joke</span><span class="p">:</span>
@@ -74,15 +74,15 @@ cmake ..
 	<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libz</span><span class="p">.</span><span class="mf">1.</span><span class="n">dylib</span> <span class="p">(</span><span class="n">compatibility</span> <span class="n">version</span> <span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">current</span> <span class="n">version</span> <span class="mf">1.2</span><span class="p">.</span><span class="mi">11</span><span class="p">)</span>
 	<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libc</span><span class="o">++</span><span class="p">.</span><span class="mf">1.</span><span class="n">dylib</span> <span class="p">(</span><span class="n">compatibility</span> <span class="n">version</span> <span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">current</span> <span class="n">version</span> <span class="mf">905.6</span><span class="p">.</span><span class="mi">0</span><span class="p">)</span>
 	<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libSystem</span><span class="p">.</span><span class="n">B</span><span class="p">.</span><span class="n">dylib</span> <span class="p">(</span><span class="n">compatibility</span> <span class="n">version</span> <span class="mf">1.0</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">current</span> <span class="n">version</span> <span class="mf">1292.100</span><span class="p">.</span><span class="mi">5</span><span class="p">)</span>
-</div></code></pre><p>That tells you that joke needs libchuckle.dylib to operate and that it doesn't really carry the meat from libchuckle in the binary. Check the size of the binary:</p><pre><code><div class="highlight"><span></span>ls -lahs joke
+</div></code></pre><p>That tells you that joke needs libchuckle.dylib to operate and that it doesn't really carry the meat from libchuckle in the binary. Check the size of the binary:</p><pre><code><div class="highlight"><span></span>ls<span class="w"> </span>-lahs<span class="w"> </span>joke
 </div></code></pre><p>It's 64k.</p><p>If you have <a href="https://www.hopperapp.com">Hopper</a> – which I highly recommend – I want to show you something. Open the binary in Hopper and search for the label joke(). Click on the first occurence and then enable pseudo-code in Hopper:</p><pre><code><div class="highlight"><span></span><span class="n">void</span> <span class="n">_Z4jokev</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">pointer</span> <span class="n">to</span> <span class="n">joke</span><span class="p">();</span>
     <span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
 </div></code></pre><p>It's just a pointer. Not the real deal. <code>libchuckle.dylib</code> has it. Check if you want to :-D</p><h4>build a static library</h4><p>Building libchuckle as a static library is easy with CMake. Just add the STATIC keyword to the chuckle target:</p><pre><code><div class="highlight"><span></span><span class="nb">add_library</span><span class="p">(</span><span class="s">chuckle</span><span class="w"> </span><span class="s">STATIC</span><span class="w"> </span><span class="s">chuckle.cpp</span><span class="w"> </span><span class="s">chuckle.h</span><span class="p">)</span>
-</div></code></pre><p>This time you might want to generate the build system in another folder:</p><pre><code><div class="highlight"><span></span>mkdir static <span class="o">&amp;&amp;</span>
-<span class="nb">cd</span> static <span class="o">&amp;&amp;</span>
-cmake .. <span class="o">&amp;&amp;</span>
+</div></code></pre><p>This time you might want to generate the build system in another folder:</p><pre><code><div class="highlight"><span></span>mkdir<span class="w"> </span>static<span class="w"> </span><span class="o">&amp;&amp;</span>
+<span class="nb">cd</span><span class="w"> </span>static<span class="w"> </span><span class="o">&amp;&amp;</span>
+cmake<span class="w"> </span>..<span class="w"> </span><span class="o">&amp;&amp;</span>
 make
 </div></code></pre><p>Now <code>joke</code> is much larger (854 kb) and instead of <code>libchuckle.dylib</code> we have <code>libchuckle.a</code> a static library. If you open <code>joke</code> in Hopper again you'll see the following as pseudo-code for <code>joke()</code>:</p><pre><code><div class="highlight"><span></span><span class="n">int</span> <span class="n">__Z4jokev</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">r31</span> <span class="p">=</span> <span class="n">r31</span> <span class="o">-</span> <span class="mh">0x1d0</span><span class="p">;</span>
@@ -122,112 +122,112 @@ make
         <span class="err">$</span><span class="p">&lt;</span><span class="n">TARGET_OBJECTS</span><span class="p">:</span><span class="n">libcurl</span><span class="p">&gt;</span>
         <span class="err">$</span><span class="p">&lt;</span><span class="n">TARGET_OBJECTS</span><span class="p">:</span><span class="n">zlib</span><span class="p">&gt;</span>
 <span class="p">)</span>
-</div></code></pre><p>This links the object files into libchuckle.</p><p>To build this for multiple architectures and platforms we need the <a href="https://github.com/leetal/ios-cmake">ios-cmake</a> toolchain. Just copy it into the <code>chuckle</code> folder and while you're at it delete <code>static</code> and <code>out</code>.</p><p>You can now setup the build system for iOS devices with the following command:</p><pre><code><div class="highlight"><span></span>cmake -S ./ -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo <span class="se">\</span>
-            -DPLATFORM<span class="o">=</span>OS64 <span class="se">\</span>
-            -DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0 <span class="se">\</span>
-            -DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake <span class="se">\</span>
-            -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -B out/os64
-</div></code></pre><p>If that step fails, please run it again. For <a href="https://github.com/leetal/ios-cmake/issues/110">reasons</a> that I haven't understand yet this fails on the first run but works on the second run for me and others.</p><p>and run the build process with:</p><pre><code><div class="highlight"><span></span>cmake --build ./out/os64 --config RelWithDebInfo
+</div></code></pre><p>This links the object files into libchuckle.</p><p>To build this for multiple architectures and platforms we need the <a href="https://github.com/leetal/ios-cmake">ios-cmake</a> toolchain. Just copy it into the <code>chuckle</code> folder and while you're at it delete <code>static</code> and <code>out</code>.</p><p>You can now setup the build system for iOS devices with the following command:</p><pre><code><div class="highlight"><span></span>cmake<span class="w"> </span>-S<span class="w"> </span>./<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DPLATFORM<span class="o">=</span>OS64<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-B<span class="w"> </span>out/os64
+</div></code></pre><p>If that step fails, please run it again. For <a href="https://github.com/leetal/ios-cmake/issues/110">reasons</a> that I haven't understand yet this fails on the first run but works on the second run for me and others.</p><p>and run the build process with:</p><pre><code><div class="highlight"><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>./out/os64<span class="w"> </span>--config<span class="w"> </span>RelWithDebInfo
 </div></code></pre><p>My complete build script looks like this:</p><pre><code><div class="highlight"><span></span><span class="ch">#!/bin/sh</span>
 
 <span class="c1"># iOS &amp; simulator running on arm64 &amp; x86_64</span>
-cmake -S ./ -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo <span class="se">\</span>
-            -DPLATFORM<span class="o">=</span>OS64 <span class="se">\</span>
-            -DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0 <span class="se">\</span>
-            -DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake <span class="se">\</span>
-            -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -B out/os64
-cmake -S ./ -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo <span class="se">\</span>
-            -DPLATFORM<span class="o">=</span>SIMULATORARM64 <span class="se">\</span>
-            -DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0 <span class="se">\</span>
-            -DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake <span class="se">\</span>
-            -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -B out/simulator_arm64
-cmake -S ./ -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo <span class="se">\</span>
-            -DPLATFORM<span class="o">=</span>SIMULATOR64 <span class="se">\</span>
-            -DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0 <span class="se">\</span>
-            -DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake <span class="se">\</span>
-            -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -B out/simulator_x86_64
+cmake<span class="w"> </span>-S<span class="w"> </span>./<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DPLATFORM<span class="o">=</span>OS64<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-B<span class="w"> </span>out/os64
+cmake<span class="w"> </span>-S<span class="w"> </span>./<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DPLATFORM<span class="o">=</span>SIMULATORARM64<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-B<span class="w"> </span>out/simulator_arm64
+cmake<span class="w"> </span>-S<span class="w"> </span>./<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DPLATFORM<span class="o">=</span>SIMULATOR64<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DDEPLOYMENT_TARGET<span class="o">=</span><span class="m">14</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-B<span class="w"> </span>out/simulator_x86_64
 
 <span class="c1"># macOS on arm64</span>
-cmake -S ./ -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo <span class="se">\</span>
-            -DPLATFORM<span class="o">=</span>MAC_ARM64 <span class="se">\</span>
-            -DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake <span class="se">\</span>
-            -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -B out/mac_arm64
+cmake<span class="w"> </span>-S<span class="w"> </span>./<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DPLATFORM<span class="o">=</span>MAC_ARM64<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-B<span class="w"> </span>out/mac_arm64
 
 <span class="c1"># macOS on x86_64</span>
-cmake -S ./ -DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo <span class="se">\</span>
-            -DPLATFORM<span class="o">=</span>MAC <span class="se">\</span>
-            -DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake <span class="se">\</span>
-            -DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -DHAVE_LIBSOCKET<span class="o">=</span>FALSE <span class="se">\</span>
-            -B out/mac_x86_64
+cmake<span class="w"> </span>-S<span class="w"> </span>./<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>RelWithDebInfo<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DPLATFORM<span class="o">=</span>MAC<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DCMAKE_TOOLCHAIN_FILE<span class="o">=</span>ios.toolchain.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_SOCKET_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-DHAVE_LIBSOCKET<span class="o">=</span>FALSE<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>-B<span class="w"> </span>out/mac_x86_64
 
-cmake --build ./out/os64 --config RelWithDebInfo --parallel <span class="m">8</span>
-cmake --build ./out/simulator_arm64 --config RelWithDebInfo --parallel <span class="m">8</span>
-cmake --build ./out/simulator_x86_64 --config RelWithDebInfo --parallel <span class="m">8</span>
-cmake --build ./out/mac_arm64 --config RelWithDebInfo --parallel <span class="m">8</span>
-cmake --build ./out/mac_x86_64 --config RelWithDebInfo --parallel <span class="m">8</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>./out/os64<span class="w"> </span>--config<span class="w"> </span>RelWithDebInfo<span class="w"> </span>--parallel<span class="w"> </span><span class="m">8</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>./out/simulator_arm64<span class="w"> </span>--config<span class="w"> </span>RelWithDebInfo<span class="w"> </span>--parallel<span class="w"> </span><span class="m">8</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>./out/simulator_x86_64<span class="w"> </span>--config<span class="w"> </span>RelWithDebInfo<span class="w"> </span>--parallel<span class="w"> </span><span class="m">8</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>./out/mac_arm64<span class="w"> </span>--config<span class="w"> </span>RelWithDebInfo<span class="w"> </span>--parallel<span class="w"> </span><span class="m">8</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>./out/mac_x86_64<span class="w"> </span>--config<span class="w"> </span>RelWithDebInfo<span class="w"> </span>--parallel<span class="w"> </span><span class="m">8</span>
 
-rm -rf libchuckle.xcframework
+rm<span class="w"> </span>-rf<span class="w"> </span>libchuckle.xcframework
 
-mkdir -p <span class="s2">&quot;out/mac/chuckle/&quot;</span>
-mkdir -p <span class="s2">&quot;out/simulator/chuckle/&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;out/mac/chuckle/&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;out/simulator/chuckle/&quot;</span>
 
-lipo -create out/mac_arm64/chuckle/libchuckle.a <span class="se">\</span>
-             out/mac_x86_64/chuckle/libchuckle.a <span class="se">\</span>
-     -output out/mac/chuckle/libchuckle.a
+lipo<span class="w"> </span>-create<span class="w"> </span>out/mac_arm64/chuckle/libchuckle.a<span class="w"> </span><span class="se">\</span>
+<span class="w">             </span>out/mac_x86_64/chuckle/libchuckle.a<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>-output<span class="w"> </span>out/mac/chuckle/libchuckle.a
 
-lipo -create out/simulator_arm64/chuckle/libchuckle.a <span class="se">\</span>
-             out/simulator_x86_64/chuckle/libchuckle.a <span class="se">\</span>
-     -output out/simulator/chuckle/libchuckle.a
+lipo<span class="w"> </span>-create<span class="w"> </span>out/simulator_arm64/chuckle/libchuckle.a<span class="w"> </span><span class="se">\</span>
+<span class="w">             </span>out/simulator_x86_64/chuckle/libchuckle.a<span class="w"> </span><span class="se">\</span>
+<span class="w">     </span>-output<span class="w"> </span>out/simulator/chuckle/libchuckle.a
 
-xcodebuild -create-xcframework <span class="se">\</span>
-  -library <span class="s2">&quot;out/os64/chuckle/libchuckle.a&quot;</span> <span class="se">\</span>
-  -library <span class="s2">&quot;out/simulator/chuckle/libchuckle.a&quot;</span> <span class="se">\</span>
-  -library <span class="s2">&quot;out/mac/chuckle/libchuckle.a&quot;</span> <span class="se">\</span>
-  -output libchuckle.xcframework
+xcodebuild<span class="w"> </span>-create-xcframework<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-library<span class="w"> </span><span class="s2">&quot;out/os64/chuckle/libchuckle.a&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-library<span class="w"> </span><span class="s2">&quot;out/simulator/chuckle/libchuckle.a&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-library<span class="w"> </span><span class="s2">&quot;out/mac/chuckle/libchuckle.a&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-output<span class="w"> </span>libchuckle.xcframework
 
 <span class="c1"># copy Header</span>
-mkdir -p libchuckle.xcframework/Headers
-cp include/chuckle/chuckle.h libchuckle.xcframework/Headers
+mkdir<span class="w"> </span>-p<span class="w"> </span>libchuckle.xcframework/Headers
+cp<span class="w"> </span>include/chuckle/chuckle.h<span class="w"> </span>libchuckle.xcframework/Headers
 
 <span class="c1"># copy xcframework into Swift package</span>
-mkdir -p ChuckleWrapper/lib
-cp -a libchuckle.xcframework ChuckleWrapper/lib
-</div></code></pre><p><strong>CAUTION:</strong> I changed a few locations. You can find the project here: <a href="https://github.com/oliverepper/chuckle">chuckle</a></p><p>Now we got a xframework that we can depend on in a Swift package that can carry an ObjC++-Wrapper to call into out code.</p><h2>Build the Swift package</h2><p>If you checked out the repository you already saw how to setup the swift package. Create a subdirectory <code>ChuckleWrapper</code> and run this from within:</p><pre><code><div class="highlight"><span></span>swift package init
+mkdir<span class="w"> </span>-p<span class="w"> </span>ChuckleWrapper/lib
+cp<span class="w"> </span>-a<span class="w"> </span>libchuckle.xcframework<span class="w"> </span>ChuckleWrapper/lib
+</div></code></pre><p><strong>CAUTION:</strong> I changed a few locations. You can find the project here: <a href="https://github.com/oliverepper/chuckle">chuckle</a></p><p>Now we got a xframework that we can depend on in a Swift package that can carry an ObjC++-Wrapper to call into out code.</p><h2>Build the Swift package</h2><p>If you checked out the repository you already saw how to setup the swift package. Create a subdirectory <code>ChuckleWrapper</code> and run this from within:</p><pre><code><div class="highlight"><span></span>swift<span class="w"> </span>package<span class="w"> </span>init
 </div></code></pre><p>Basically we need this Swift file:</p><pre><code><div class="highlight"><span></span><span class="p">@</span><span class="n">_exported</span> <span class="kd">import</span> <span class="nc">ObjC</span>
 </div></code></pre><p>That will depend on the <code>ObjC</code> target that has the following files:</p><h4>ObjC/include/ChuckleWrapper.h</h4><pre><code><div class="highlight"><span></span><span class="cp">#ifndef ChuckleWrapper_h</span>
 <span class="cp">#define ChuckleWrapper_h</span>
 
 <span class="cp">#import &lt;Foundation/Foundation.h&gt;</span>
 
-<span class="k">@interface</span> <span class="nc">ChuckleWrapper</span> : <span class="bp">NSObject</span><span class="w"></span>
+<span class="k">@interface</span> <span class="nc">ChuckleWrapper</span> : <span class="bp">NSObject</span>
 
-<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="p">;</span><span class="w"></span>
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="p">;</span>
 
-<span class="k">@end</span><span class="w"></span>
+<span class="k">@end</span>
 
-<span class="cp">#endif </span><span class="cm">/* ChuckleWrapper_h */</span><span class="cp"></span>
+<span class="cp">#endif </span><span class="cm">/* ChuckleWrapper_h */</span>
 </div></code></pre><p>and it's implementation</p><h4>ObjC/ChuckleWrapper.mm</h4><pre><code><div class="highlight"><span></span><span class="cp">#import &quot;ChuckleWrapper.h&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;chuckle.h&quot;</span>
 
-<span class="k">@implementation</span> <span class="nc">ChuckleWrapper</span><span class="w"></span>
+<span class="k">@implementation</span> <span class="nc">ChuckleWrapper</span>
 
-<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nf">joke</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">stringWithCString</span><span class="o">:</span><span class="n">joke</span><span class="p">().</span><span class="n">c_str</span><span class="p">()</span><span class="w"> </span><span class="n">encoding</span><span class="o">:</span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">defaultCStringEncoding</span><span class="p">]];</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="p">+</span> <span class="p">(</span><span class="bp">NSString</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="nf">joke</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">stringWithCString</span><span class="o">:</span><span class="n">joke</span><span class="p">().</span><span class="n">c_str</span><span class="p">()</span><span class="w"> </span><span class="n">encoding</span><span class="o">:</span><span class="p">[</span><span class="bp">NSString</span><span class="w"> </span><span class="n">defaultCStringEncoding</span><span class="p">]];</span>
+<span class="p">}</span>
 
-<span class="k">@end</span><span class="w"></span>
+<span class="k">@end</span>
 </div></code></pre><p>Here we can include <code>chuckle.h</code> because we copied the header file into our xcframework and let the <code>ObjC</code> target depend on that via</p><h4>Package.swift</h4><pre><code><div class="highlight"><span></span><span class="c1">// swift-tools-version:5.3</span>
 <span class="kd">import</span> <span class="nc">PackageDescription</span>
 
@@ -291,11 +291,11 @@ cp -a libchuckle.xcframework ChuckleWrapper/lib
         <span class="p">}</span>
         <span class="bp">print</span><span class="p">(</span><span class="s">&quot;&quot;&quot;</span>
 <span class="s">            ---</span>
-<span class="s">            </span><span class="si">\(</span><span class="n">joke</span><span class="si">)</span><span class="s"></span>
+<span class="s">            </span><span class="si">\(</span><span class="n">joke</span><span class="si">)</span>
 <span class="s">            ---</span>
 <span class="s">            &quot;&quot;&quot;</span><span class="p">)</span>
         <span class="n">XCTAssertFalse</span><span class="p">(</span><span class="n">joke</span><span class="p">.</span><span class="bp">isEmpty</span><span class="p">)</span>
     <span class="p">}</span>
 <span class="p">}</span>
-</div></code></pre><p><strong>CAUTION:</strong> Xcode has a really hard time with such a package. If Xcode refuses to compile the package you can either try to compile &amp; run tests form the terminal:</p><pre><code><div class="highlight"><span></span>swift build <span class="o">&amp;&amp;</span> swift <span class="nb">test</span>
+</div></code></pre><p><strong>CAUTION:</strong> Xcode has a really hard time with such a package. If Xcode refuses to compile the package you can either try to compile &amp; run tests form the terminal:</p><pre><code><div class="highlight"><span></span>swift<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>swift<span class="w"> </span><span class="nb">test</span>
 </div></code></pre><p>Or it can help to delete <code>.swiftpm</code></p></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>
