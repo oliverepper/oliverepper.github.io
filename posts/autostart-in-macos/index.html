@@ -62,10 +62,15 @@
             <span class="n">Color</span><span class="p">.</span><span class="n">clear</span><span class="p">.</span><span class="n">onHover</span> <span class="p">{</span> <span class="kc">_</span> <span class="k">in</span>
                 <span class="n">autostart</span><span class="p">.</span><span class="n">check</span><span class="p">()</span>
             <span class="p">}</span>
-            <span class="n">Toggle</span><span class="p">(</span><span class="n">isOn</span><span class="p">:</span> <span class="n">projection</span><span class="p">)</span> <span class="p">{</span>
-                <span class="n">Text</span><span class="p">(</span><span class="n">verbatim</span><span class="p">:</span> <span class="s">&quot;wants Autostart&quot;</span><span class="p">)</span>
+            <span class="n">VStack</span> <span class="p">{</span>
+                <span class="k">if</span> <span class="kd">let</span> <span class="nv">errorMsg</span> <span class="p">{</span>
+                    <span class="n">Text</span><span class="p">(</span><span class="n">verbatim</span><span class="p">:</span> <span class="n">errorMsg</span><span class="p">).</span><span class="n">foregroundStyle</span><span class="p">(.</span><span class="n">red</span><span class="p">)</span>
+                <span class="p">}</span>
+                <span class="n">Toggle</span><span class="p">(</span><span class="n">isOn</span><span class="p">:</span> <span class="n">projection</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">Text</span><span class="p">(</span><span class="n">verbatim</span><span class="p">:</span> <span class="s">&quot;wants Autostart&quot;</span><span class="p">)</span>
+                <span class="p">}</span>
+                <span class="p">.</span><span class="n">toggleStyle</span><span class="p">(</span><span class="n">SwitchToggleStyle</span><span class="p">())</span>
             <span class="p">}</span>
-            <span class="p">.</span><span class="n">toggleStyle</span><span class="p">(</span><span class="n">SwitchToggleStyle</span><span class="p">())</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
