@@ -88,7 +88,34 @@
 
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">count_if</span><span class="p">(</span><span class="n">begin</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="n">family</span><span class="p">](</span><span class="k">auto</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ia</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">ia</span><span class="p">.</span><span class="n">ifa_addr</span><span class="o">-&gt;</span><span class="n">sa_family</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">family</span><span class="p">;</span><span class="w"> </span><span class="p">});</span>
 <span class="p">}</span>
-</div></code></pre><h2>Complete Demo</h2><p><a href="https://christiantietze.de">Chris Tietze</a> made me realize that wrapping things up in a handle class <code>IfAddrs</code> makes things even nicer!</p><h3>main</h3><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;IfAddrs.h&quot;</span>
+</div></code></pre><h2>Complete Demo</h2><p><a href="https://christiantietze.de">Chris Tietze</a> made me realize that wrapping things up in a handle class <code>IfAddrs</code> makes things even nicer!</p><h3>IfAddrs</h3><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;linked_list_iterator.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ifaddrs.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;netdb.h&gt;</span>
+
+<span class="k">struct</span><span class="w"> </span><span class="nc">IfAddrs</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">deleter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">ifaddrs</span><span class="w"> </span><span class="o">*</span><span class="n">ia</span><span class="p">){</span><span class="w"> </span><span class="n">freeifaddrs</span><span class="p">(</span><span class="n">ia</span><span class="p">);</span><span class="w"> </span><span class="p">};</span>
+
+<span class="w">    </span><span class="k">explicit</span><span class="w"> </span><span class="n">IfAddrs</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m_list</span><span class="p">{</span><span class="k">nullptr</span><span class="p">}</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">ifaddrs</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">;</span>
+<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getifaddrs</span><span class="p">(</span><span class="o">&amp;</span><span class="n">list</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="n">gai_strerror</span><span class="p">(</span><span class="n">status</span><span class="p">)};</span>
+
+<span class="w">        </span><span class="n">m_list</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="n">list</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="w"> </span><span class="n">begin</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_list</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span><span class="w"> </span><span class="p">[](</span><span class="n">ifaddrs</span><span class="w"> </span><span class="o">*</span><span class="n">ia</span><span class="p">){</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">ia</span><span class="o">-&gt;</span><span class="n">ifa_next</span><span class="p">;</span><span class="w"> </span><span class="p">});</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="w"> </span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="p">(</span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="k">private</span><span class="o">:</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="p">,</span><span class="w"> </span><span class="k">decltype</span><span class="p">(</span><span class="n">deleter</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_list</span><span class="p">;</span>
+<span class="p">};</span>
+</div></code></pre><h3>main</h3><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;IfAddrs.h&quot;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;arpa/inet.h&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdlib&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
@@ -126,31 +153,4 @@
 
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_SUCCESS</span><span class="p">;</span>
 <span class="p">}</span>
-</div></code></pre><h3>IfAddrs</h3><pre><code><div class="highlight"><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;linked_list_iterator.h&quot;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ifaddrs.h&gt;</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;netdb.h&gt;</span>
-
-<span class="k">struct</span><span class="w"> </span><span class="nc">IfAddrs</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">deleter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[](</span><span class="n">ifaddrs</span><span class="w"> </span><span class="o">*</span><span class="n">ia</span><span class="p">){</span><span class="w"> </span><span class="n">freeifaddrs</span><span class="p">(</span><span class="n">ia</span><span class="p">);</span><span class="w"> </span><span class="p">};</span>
-
-<span class="w">    </span><span class="k">explicit</span><span class="w"> </span><span class="n">IfAddrs</span><span class="p">()</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">m_list</span><span class="p">{</span><span class="k">nullptr</span><span class="p">}</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="n">ifaddrs</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">;</span>
-<span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">status</span><span class="p">;</span>
-<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getifaddrs</span><span class="p">(</span><span class="o">&amp;</span><span class="n">list</span><span class="p">))</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
-<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">runtime_error</span><span class="p">{</span><span class="n">gai_strerror</span><span class="p">(</span><span class="n">status</span><span class="p">)};</span>
-
-<span class="w">        </span><span class="n">m_list</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="n">list</span><span class="p">);</span>
-<span class="w">    </span><span class="p">}</span>
-
-<span class="w">    </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="w"> </span><span class="n">begin</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_list</span><span class="p">.</span><span class="n">get</span><span class="p">(),</span><span class="w"> </span><span class="p">[](</span><span class="n">ifaddrs</span><span class="w"> </span><span class="o">*</span><span class="n">ia</span><span class="p">){</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">ia</span><span class="o">-&gt;</span><span class="n">ifa_next</span><span class="p">;</span><span class="w"> </span><span class="p">});</span>
-<span class="w">    </span><span class="p">}</span>
-
-<span class="w">    </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="w"> </span><span class="n">end</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">linked_list_iterator</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="o">&gt;</span><span class="p">(</span><span class="k">nullptr</span><span class="p">,</span><span class="w"> </span><span class="k">nullptr</span><span class="p">);</span>
-<span class="w">    </span><span class="p">}</span>
-
-<span class="k">private</span><span class="o">:</span>
-<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ifaddrs</span><span class="p">,</span><span class="w"> </span><span class="k">decltype</span><span class="p">(</span><span class="n">deleter</span><span class="p">)</span><span class="o">&gt;</span><span class="w"> </span><span class="n">m_list</span><span class="p">;</span>
-<span class="p">};</span>
 </div></code></pre></article></div></main><footer><div class="container"><div class="credits">Oliver Epper &middot; made with <a href="https://github.com/johnsundell/publish" target="_blank">Publish</a> &middot;  inspired by <a href="https://github.com/luizdepra/hugo-coder" target="_blank">Coder</a> &middot; <a href="/feed.rss">RSS feed</a></div></div></footer></div><script src="https://kit.fontawesome.com/fd7cbf6928.js" crossorigin="anonmous"></script></body></html>
