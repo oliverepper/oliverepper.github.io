@@ -43,8 +43,8 @@ sudo<span class="w"> </span>zfs<span class="w"> </span>send<span class="w"> </sp
 </div></code></pre><p>Let's make all of our snapshots visible to the file system <code>backup/oliver</code>:</p><pre><code><div class="highlight"><span></span>sudo<span class="w"> </span>zfs<span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="nv">snapdir</span><span class="o">=</span>visible<span class="w"> </span>backup/oliver
 </div></code></pre><p>Now open <code>/Volumes/backup/oliver</code> in Finder and press <code>Cmd</code> + <code>Shift</code> + <code>.</code> to make dot-files visible and navigate to <code>.zfs/snapshot/oliver@2</code> and you have read-only access to your deleted files.</p><figure>
     <picture>
-        <source srcset="images/zfs-snapshots-dark.png" media="(prefers-color-scheme: dark)">
-        <img src="images/zfs-snapshots.png" alt="zfs-snapshots">
+        <source srcset="/images/zfs-snapshots-dark.png" media="(prefers-color-scheme: dark)">
+        <img src="/images/zfs-snapshots.png" alt="zfs-snapshots">
     </picture>
 </figure><h2>Simulate a disk-failure</h2><p>Let's export (think unmount) the pool <code>backup</code>:</p><pre><code><div class="highlight"><span></span>sudo<span class="w"> </span>zpool<span class="w"> </span><span class="nb">export</span><span class="w"> </span>backup
 </div></code></pre><p>and detach <code>disk8</code>:</p><pre><code><div class="highlight"><span></span>hdiutil<span class="w"> </span>detach<span class="w"> </span>/dev/disk8
