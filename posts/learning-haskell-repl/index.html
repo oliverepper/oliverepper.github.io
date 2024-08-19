@@ -88,7 +88,7 @@
 <span class="nf">loop</span><span class="w"> </span><span class="ow">::</span><span class="w"> </span><span class="kt">IO</span><span class="w"> </span><span class="kt">Bool</span><span class="w"> </span><span class="ow">-&gt;</span><span class="w"> </span><span class="kt">IO</span><span class="w"> </span><span class="nb">()</span>
 <span class="nf">loop</span><span class="w"> </span><span class="n">ioAction</span><span class="w"> </span><span class="ow">=</span>
 <span class="w">    </span><span class="n">ioAction</span><span class="w"> </span><span class="o">&gt;&gt;=</span><span class="w"> </span><span class="nf">\</span><span class="n">continue</span><span class="w"> </span><span class="ow">-&gt;</span>
-<span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="n">continue</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="n">loop&#39;</span><span class="w"> </span><span class="n">ioAction</span>
+<span class="w">        </span><span class="kr">if</span><span class="w"> </span><span class="n">continue</span><span class="w"> </span><span class="kr">then</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="n">ioAction</span>
 <span class="w">        </span><span class="kr">else</span><span class="w"> </span><span class="n">return</span><span class="w"> </span><span class="nb">()</span>
 
 <span class="nf">repl</span><span class="w"> </span><span class="ow">::</span><span class="w"> </span><span class="kt">IO</span><span class="w"> </span><span class="nb">()</span>
